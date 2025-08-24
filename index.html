@@ -300,12 +300,13 @@
             <label class="block text-sm font-medium">Mensaje (opcional)</label>
             <textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
           </div>
-          <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización.</p>
+          <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización. Parte de esta información se registrará de forma segura para dar seguimiento a tu solicitud.</p>
           <div class="sm:col-span-2 flex flex-wrap gap-3">
             <button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white">Enviar por WhatsApp</button>
             <button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green">Enviar por Email</button>
           </div>
           <div id="formMsg" class="sm:col-span-2 text-sm text-emerald-700 mt-2 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío. Te responderemos en 24–48 h.</div>
+          <div id="saveHint" class="sm:col-span-2 text-sm text-brand-text/60 mt-1 hidden">Datos registrados. Si no recibes respuesta en 24–48 h, escríbenos por WhatsApp.</div>
         </form>
       </div>
     </section>
@@ -360,6 +361,8 @@
     // --- Configura tu contacto aquí ---
     const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
     const EMAIL_TO  = 'monselattepr@gmail.com'; // Correo real
+    // URL del Web App de Google Apps Script (reemplaza por el tuyo)
+    const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxiW1lxIQOf8v65gBAFl8-l66oRXXTnuXRtHrcyIeQRuddCULPKkNbJJ_CEe5tlmjVaJg/exec';
 
     // Sombra en header al hacer scroll
     const header = document.querySelector('header');
@@ -367,6 +370,21 @@
       if (window.scrollY > 10) header.classList.add('elevated');
       else header.classList.remove('elevated');
     });
+
+    // Guardar en Google Sheets (en segundo plano)
+async function saveToSheet(formData){
+  try {
+    const payload = Object.fromEntries(formData.entries());
+    fetch(SHEET_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors', // para no bloquear por CORS
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.warn('No se pudo guardar en la hoja:', err);
+  }
+}
 
     // Helper para armar mensaje desde el formulario
     function buildMessage(formData){
@@ -391,18 +409,24 @@
       e.preventDefault();
       const data = new FormData(form);
       const msg = buildMessage(data);
+      // Guarda en Google Sheets en segundo plano
+      saveToSheet(data);
       const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
       formMsg?.classList.remove('hidden');
+      document.getElementById('saveHint')?.classList.remove('hidden');
     });
 
     // Enviar por Email
     document.getElementById('sendEmail')?.addEventListener('click', () => {
       const data = new FormData(form);
       const msg = buildMessage(data);
+      // Guarda en Google Sheets en segundo plano
+      saveToSheet(data);
       const subject = 'Solicitud de cotización — Monselatte';
       const mailto = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
       window.location.href = mailto;
+      document.getElementById('saveHint')?.classList.remove('hidden');
     });
   </script>
 </body>
