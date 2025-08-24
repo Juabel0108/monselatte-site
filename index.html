@@ -7,7 +7,7 @@
   <meta name="description" content="Barra de café para bodas, cumpleaños y eventos corporativos en Puerto Rico. Paquetes claros, baristas profesionales y reservas en línea." />
   <meta name="theme-color" content="#0B3D2E" />
   <meta property="og:title" content="Monselatte Coffee Bar" />
-  <meta property="og:description" content="Café de especialidad para tu evento, en toda Puerto Rico." />
+  <meta property="og:description" content="Barra de café para tu evento, en toda Puerto Rico." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.jpg" />
 
@@ -292,10 +292,6 @@
               <option value="Por definir">Por definir</option>
             </select>
           </div>
-          <div class="sm:col-span-1">
-            <label class="block text-sm font-medium">Presupuesto aproximado (opcional)</label>
-            <input name="presupuesto" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium">Mensaje (opcional)</label>
             <textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
@@ -398,7 +394,6 @@ async function saveToSheet(formData){
              `Tipo de evento: ${formData.get('tipo')}\n` +
              `Invitados: ${formData.get('invitados')}\n` +
              `Paquete: ${formData.get('paquete')}\n` +
-             `Presupuesto: ${formData.get('presupuesto') || 'N/D'}\n` +
              `Mensaje: ${formData.get('mensaje') || '—'}`;
     }
 
