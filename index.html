@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monselatte Coffee Bar | Barra de café para eventos en Puerto Rico</title>
+  <meta name="description" content="Barra de café de especialidad para bodas, cumpleaños y eventos corporativos en Puerto Rico. Paquetes claros, baristas profesionales y reservas en línea." />
+  <meta name="theme-color" content="#0B3D2E" />
+  <meta property="og:title" content="Monselatte Coffee Bar" />
+  <meta property="og:description" content="Café de especialidad para tu evento, en toda Puerto Rico." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/og-image.jpg" />
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind via CDN con paleta de marca -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#0B3D2E',
+              cream: '#F8F5F0',
+              gold: '#A57C2B',    // usa '#C8A96A' si prefieres más suave
+              text: '#1A1A1A',
+              espresso: '#5A3A2E'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Playfair Display', 'serif']
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.08)'
+          },
+          borderRadius: {
+            xl2: '1rem'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="bg-brand-cream text-brand-text font-sans">
+  <!-- Header fijo -->
+  <header class="sticky top-0 z-50 bg-brand-cream/90 backdrop-blur border-b border-black/5">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#inicio" class="flex items-center gap-3 group">
+        <!-- Coloca aquí tu logo en <img> si quieres -->
+        <div class="w-9 h-9 rounded-full bg-brand-green grid place-items-center text-white font-serif text-xl">M</div>
+        <span class="font-semibold tracking-tight">Monselatte Coffee Bar</span>
+      </a>
+
+      <button id="menuBtn" class="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-brand-green/30" aria-label="Abrir menú">
+        <span class="i">☰</span>
+      </button>
+
+      <ul id="navLinks" class="hidden lg:flex items-center gap-6 text-sm">
+        <li><a class="hover:text-brand-green" href="#sobre">Sobre</a></li>
+        <li><a class="hover:text-brand-green" href="#paquetes">Paquetes</a></li>
+        <li><a class="hover:text-brand-green" href="#galeria">Galería</a></li>
+        <li><a class="hover:text-brand-green" href="#testimonios">Testimonios</a></li>
+        <li><a class="hover:text-brand-green" href="#contacto">Contacto</a></li>
+        <li><a class="ml-2 inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white" href="#reserva">Reserva tu fecha</a></li>
+      </ul>
+    </nav>
+
+    <!-- Menú móvil -->
+    <div id="mobileMenu" class="lg:hidden hidden border-t border-black/5 bg-brand-cream">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 grid gap-3 text-sm">
+        <a class="hover:text-brand-green" href="#sobre">Sobre</a>
+        <a class="hover:text-brand-green" href="#paquetes">Paquetes</a>
+        <a class="hover:text-brand-green" href="#galeria">Galería</a>
+        <a class="hover:text-brand-green" href="#testimonios">Testimonios</a>
+        <a class="hover:text-brand-green" href="#contacto">Contacto</a>
+        <a class="inline-flex w-max items-center px-4 py-2 rounded-md bg-brand-green text-white" href="#reserva">Reserva tu fecha</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <!-- HERO -->
+    <section class="relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+        <!-- Imagen -->
+        <figure class="order-2 lg:order-1">
+          <!-- SUGERENCIA: usa 1600px de ancho mínimo (JPG/WebP <300KB) -->
+          <img src="assets/img/hero-monselatte.jpg" alt="Barra de café móvil Monselatte en evento" class="w-full rounded-2xl shadow-soft object-cover" loading="lazy">
+          <figcaption class="sr-only">Barra de café de especialidad en evento</figcaption>
+        </figure>
+
+        <!-- Texto -->
+        <div class="order-1 lg:order-2">
+          <p class="uppercase tracking-widest text-xs text-brand-green/80 font-medium">Barra de café móvil · Puerto Rico</p>
+          <h1 class="mt-3 font-serif text-4xl sm:text-5xl font-semibold leading-tight text-brand-green">Café de especialidad para tu evento.</h1>
+          <p class="mt-4 text-base sm:text-lg max-w-prose">Baristas profesionales, equipo premium y una experiencia que tus invitados recordarán.</p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="#reserva" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white">Reserva tu fecha</a>
+            <a href="#paquetes" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green">Ver paquetes</a>
+          </div>
+
+          <div class="mt-6 text-sm text-brand-green/90 flex flex-wrap gap-x-6 gap-y-2">
+            <span>✔ Baristas capacitados</span>
+            <span>✔ Equipo premium</span>
+            <span>✔ Cobertura en toda la isla</span>
+            <span>✔ Respuesta en 24–48 h</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE NOSOTROS -->
+    <section id="sobre" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Sobre nosotros</h2>
+          <p class="mt-4">En <strong>Monselatte Coffee Bar</strong> llevamos una barra de café de especialidad a tu celebración. Creamos momentos memorables con bebidas hechas al instante y un servicio atento que se adapta a tu estilo.</p>
+          <ul class="mt-6 grid gap-2 text-brand-text/90">
+            <li>• <strong>Calibración y consistencia</strong>: extracción ajustada para sacar lo mejor de cada grano.</li>
+            <li>• <strong>Menú para todos</strong>: leches alternas y sabores de temporada.</li>
+            <li>• <strong>Presentación impecable</strong>: barra ordenada, menús claros y estética elegante.</li>
+            <li>• <strong>Experiencia personalizada</strong>: stickers, QR del evento y menú con branding.</li>
+          </ul>
+        </div>
+        <div>
+          <!-- SUGERENCIA: 1200px de ancho mínimo (JPG/WebP <250KB) -->
+          <img src="assets/img/sobre.jpg" alt="Detalle de latte art y equipo profesional" class="w-full rounded-2xl shadow-soft object-cover" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- PAQUETES -->
+    <section id="paquetes" class="py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Paquetes de servicio</h2>
+          <p class="mt-3 text-brand-text/80">Elige la opción que mejor se ajuste a tu evento. Podemos ajustar detalles según tu necesidad.</p>
+        </div>
+
+        <div class="mt-10 grid gap-6 sm:gap-8 md:grid-cols-3">
+          <!-- Básico -->
+          <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col">
+            <h3 class="font-serif text-2xl text-brand-green">Básico</h3>
+            <p class="mt-2 text-sm uppercase tracking-wide text-brand-text/60">2 horas</p>
+            <p class="mt-3">Café (espresso/americano) + <strong>1 tipo de leche</strong>.</p>
+            <p class="mt-2 text-brand-text/80">Ideal para eventos íntimos o como estación adicional.</p>
+            <div class="mt-6 pt-6 border-t border-black/10">
+              <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white w-max">Solicita cotización</a>
+            </div>
+          </article>
+
+          <!-- Experiencia Monselatte -->
+          <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col">
+            <h3 class="font-serif text-2xl text-brand-green">Experiencia Monselatte</h3>
+            <p class="mt-2 text-sm uppercase tracking-wide text-brand-text/60">Menú completo</p>
+            <p class="mt-3">Espresso, americano, latte, cappuccino, mocha, chocolate y chai latte.</p>
+            <p class="mt-2">Leches: entera y <strong>alternas</strong> (p. ej., avena). Sabores de temporada.</p>
+            <div class="mt-6 pt-6 border-t border-black/10">
+              <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md border-2 border-brand-gold text-brand-green w-max">Ver detalles</a>
+            </div>
+          </article>
+
+          <!-- Premium -->
+          <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col">
+            <div class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-brand-gold">Premium</div>
+            <h3 class="mt-1 font-serif text-2xl text-brand-green">Experiencia Premium</h3>
+            <p class="mt-3">Todo lo anterior + <strong>stickers</strong> del evento, <strong>QR</strong> con mini web del evento y <strong>menú con branding</strong>.</p>
+            <p class="mt-2 text-brand-text/80">Ideal para bodas y corporativos con foco en detalle.</p>
+            <div class="mt-6 pt-6 border-t border-black/10">
+              <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white w-max">Diseña tu Premium</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERÍA -->
+    <section id="galeria" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Galería</h2>
+          <p class="mt-3 text-brand-text/80">Momentos Monselatte en bodas, cumpleaños y eventos corporativos.</p>
+        </div>
+        <!-- SUGERENCIA: 900–1200px de ancho por imagen, relación 4:3 o 1:1, peso <200KB -->
+        <div class="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-1.jpg" alt="Barra en boda" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-2.jpg" alt="Latte art" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-3.jpg" alt="Invitados disfrutando café" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-4.jpg" alt="Set up elegante" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-5.jpg" alt="Detalle equipo" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-6.jpg" alt="Café servido al momento" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-7.jpg" alt="Evento corporativo" loading="lazy">
+          <img class="w-full h-48 object-cover rounded-xl" src="assets/img/galeria-8.jpg" alt="Café para invitados" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section id="testimonios" class="py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Lo que dicen nuestros clientes</h2>
+        </div>
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
+          <blockquote class="bg-white p-6 rounded-2xl shadow-soft border border-black/5">
+            <p>“El café fue un éxito total en nuestra boda. Servicio puntual y exquisito.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— María &amp; Luis</footer>
+          </blockquote>
+          <blockquote class="bg-white p-6 rounded-2xl shadow-soft border border-black/5">
+            <p>“Atención de primera y bebidas deliciosas. Contrataría de nuevo.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— Andrea, RR.HH. Corporativo</footer>
+          </blockquote>
+          <blockquote class="bg-white p-6 rounded-2xl shadow-soft border border-black/5">
+            <p>“La barra Premium con QR y stickers encantó a todos.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— Carlos, cumpleaños 30</footer>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESERVA TU FECHA -->
+    <section id="reserva" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Reserva tu fecha</h2>
+        <p class="mt-3 text-brand-text/80">Cuéntanos de tu evento y te respondemos con disponibilidad y cotización.</p>
+
+        <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Nombre y Apellidos*</label>
+            <input required name="nombre" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Email*</label>
+            <input required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Teléfono/WhatsApp*</label>
+            <input required name="telefono" type="tel" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Fecha del evento*</label>
+            <input required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Localidad/municipio*</label>
+            <input required name="localidad" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Tipo de evento*</label>
+            <select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="Boda">Boda</option>
+              <option value="Corporativo">Corporativo</option>
+              <option value="Cumpleaños">Cumpleaños</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Cantidad de invitados*</label>
+            <input required name="invitados" type="number" min="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Paquete de interés</label>
+            <select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="Básico">Básico</option>
+              <option value="Experiencia Monselatte">Experiencia Monselatte</option>
+              <option value="Premium">Premium</option>
+              <option value="Por definir">Por definir</option>
+            </select>
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Presupuesto aproximado (opcional)</label>
+            <input name="presupuesto" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium">Mensaje (opcional)</label>
+            <textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
+          </div>
+          <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización.</p>
+          <div class="sm:col-span-2 flex flex-wrap gap-3">
+            <button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white">Enviar por WhatsApp</button>
+            <button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green">Enviar por Email</button>
+          </div>
+          <div id="formMsg" class="sm:col-span-2 text-sm text-emerald-700 mt-2 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío. Te responderemos en 24–48 h.</div>
+        </form>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section id="contacto" class="py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Contacto</h2>
+          <ul class="mt-6 grid gap-3 text-lg">
+            <li>Email: <a class="underline hover:text-brand-green" href="mailto:hola@monselatte.com">hola@monselatte.com</a></li>
+            <li>WhatsApp: <a class="underline hover:text-brand-green" href="https://wa.me/17870000000" target="_blank" rel="noopener">+1 787 XXX XXXX</a></li>
+            <li>Instagram: <a class="underline hover:text-brand-green" href="https://instagram.com/monselatte.pr" target="_blank" rel="noopener">@monselatte.pr</a></li>
+            <li>Ubicación: Bayamón, Puerto Rico (servicio móvil en toda la isla)</li>
+          </ul>
+          <div class="mt-6">
+            <a href="#reserva" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white">Reservar</a>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-white p-6 shadow-soft border border-black/5">
+          <h3 class="font-serif text-2xl text-brand-green">Pagos (etapa 2)</h3>
+          <p class="mt-2 text-brand-text/80">Confirmamos disponibilidad por WhatsApp/Email y luego enviamos el enlace de depósito (PayPal/ATH Móvil). El depósito asegura la fecha según políticas de cancelación.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-black/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm flex flex-wrap items-center justify-between gap-4">
+      <p>© <span id="year"></span> Monselatte Coffee Bar. Todos los derechos reservados.</p>
+      <p class="text-brand-text/70">El depósito asegura la fecha. Reembolsos según política enviada con la cotización.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Año dinámico
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Menú móvil
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const navLinks = document.getElementById('navLinks');
+    menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    // --- Configura tu contacto aquí ---
+    const WA_NUMBER = '17870000000'; // Reemplaza sin + ni espacios (p. ej., 1787XXXXXXX)
+    const EMAIL_TO  = 'hola@monselatte.com'; // Cambia al correo real
+
+    // Helper para armar mensaje desde el formulario
+    function buildMessage(formData){
+      return `Hola Monselatte, quiero cotizar una barra de café.\n\n` +
+             `Nombre: ${formData.get('nombre')}\n` +
+             `Email: ${formData.get('email')}\n` +
+             `Teléfono: ${formData.get('telefono')}\n` +
+             `Fecha: ${formData.get('fecha')}\n` +
+             `Localidad: ${formData.get('localidad')}\n` +
+             `Tipo de evento: ${formData.get('tipo')}\n` +
+             `Invitados: ${formData.get('invitados')}\n` +
+             `Paquete: ${formData.get('paquete')}\n` +
+             `Presupuesto: ${formData.get('presupuesto') || 'N/D'}\n` +
+             `Mensaje: ${formData.get('mensaje') || '—'}`;
+    }
+
+    // Enviar por WhatsApp (submit)
+    const form = document.getElementById('leadForm');
+    const formMsg = document.getElementById('formMsg');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const msg = buildMessage(data);
+      const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+      formMsg?.classList.remove('hidden');
+    });
+
+    // Enviar por Email
+    document.getElementById('sendEmail')?.addEventListener('click', () => {
+      const data = new FormData(form);
+      const msg = buildMessage(data);
+      const subject = 'Solicitud de cotización — Monselatte';
+      const mailto = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
+      window.location.href = mailto;
+    });
+  </script>
+</body>
+</html>
