@@ -129,7 +129,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-10 items-center">
         <div>
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green">Sobre nosotros</h2>
-          <p class="mt-4">En <strong>Monselatte Coffee Bar</strong> llevamos una barra de café de especialidad a tu celebración. Creamos momentos memorables con bebidas hechas al instante y un servicio atento que se adapta a tu estilo.</p>
+          <p class="mt-4">En <strong>Monselatte Coffee Bar</strong> llevamos una barra de café de a tu celebración. Creamos momentos memorables con bebidas hechas al instante y un servicio atento que se adapta a tu estilo.</p>
           <ul class="mt-6 grid gap-2 text-brand-text/90">
             <li>• <strong>Calibración y consistencia</strong>: extracción ajustada para sacar lo mejor de cada grano.</li>
             <li>• <strong>Menú para todos</strong>: leches alternas y sabores de temporada.</li>
@@ -246,9 +246,16 @@
         <p class="mt-3 text-brand-text/80">Cuéntanos de tu evento y te respondemos con disponibilidad y cotización.</p>
 
         <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Honeypot anti-spam (bots suelen llenarlo). Si tiene valor, NO enviamos -->
+          <div class="hidden">
+            <label for="website" class="sr-only">No completar</label>
+            <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true">
+          </div>
+          <!-- Contenedor de errores de validación -->
+          <div id="errors" class="sm:col-span-2 text-sm text-red-700 hidden"></div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Nombre y Apellidos*</label>
-            <input required name="nombre" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+            <input required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" title="Solo letras, espacios y acentos (2–60 caracteres)" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Email*</label>
@@ -256,7 +263,7 @@
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Teléfono/WhatsApp*</label>
-            <input required name="telefono" type="tel" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+            <input required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\\-\\s]{7,}" title="Escribe un teléfono válido (solo dígitos, espacios, paréntesis o guiones)" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Fecha del evento*</label>
@@ -267,8 +274,87 @@
             <input required name="hora" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
           </div>
           <div class="sm:col-span-1">
-            <label class="block text-sm font-medium">Localidad/municipio*</label>
-            <input required name="localidad" type="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+            <label class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
+            <select required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="" disabled selected>Selecciona un municipio</option>
+              <option>Adjuntas</option>
+              <option>Aguada</option>
+              <option>Aguadilla</option>
+              <option>Aguas Buenas</option>
+              <option>Aibonito</option>
+              <option>Arecibo</option>
+              <option>Arroyo</option>
+              <option>Barceloneta</option>
+              <option>Barranquitas</option>
+              <option>Bayamón</option>
+              <option>Cabo Rojo</option>
+              <option>Caguas</option>
+              <option>Camuy</option>
+              <option>Canóvanas</option>
+              <option>Carolina</option>
+              <option>Cataño</option>
+              <option>Cayey</option>
+              <option>Ceiba</option>
+              <option>Ciales</option>
+              <option>Cidra</option>
+              <option>Coamo</option>
+              <option>Comerío</option>
+              <option>Corozal</option>
+              <option>Culebra</option>
+              <option>Dorado</option>
+              <option>Fajardo</option>
+              <option>Florida</option>
+              <option>Guánica</option>
+              <option>Guayama</option>
+              <option>Guayanilla</option>
+              <option>Guaynabo</option>
+              <option>Gurabo</option>
+              <option>Hatillo</option>
+              <option>Hormigueros</option>
+              <option>Humacao</option>
+              <option>Isabela</option>
+              <option>Jayuya</option>
+              <option>Juana Díaz</option>
+              <option>Juncos</option>
+              <option>Lajas</option>
+              <option>Lares</option>
+              <option>Las Marías</option>
+              <option>Las Piedras</option>
+              <option>Loíza</option>
+              <option>Luquillo</option>
+              <option>Manatí</option>
+              <option>Maricao</option>
+              <option>Maunabo</option>
+              <option>Mayagüez</option>
+              <option>Moca</option>
+              <option>Morovis</option>
+              <option>Naguabo</option>
+              <option>Naranjito</option>
+              <option>Orocovis</option>
+              <option>Patillas</option>
+              <option>Peñuelas</option>
+              <option>Ponce</option>
+              <option>Quebradillas</option>
+              <option>Rincón</option>
+              <option>Río Grande</option>
+              <option>Sabana Grande</option>
+              <option>Salinas</option>
+              <option>San Germán</option>
+              <option>San Juan</option>
+              <option>San Lorenzo</option>
+              <option>San Sebastián</option>
+              <option>Santa Isabel</option>
+              <option>Toa Alta</option>
+              <option>Toa Baja</option>
+              <option>Trujillo Alto</option>
+              <option>Utuado</option>
+              <option>Vega Alta</option>
+              <option>Vega Baja</option>
+              <option>Vieques</option>
+              <option>Villalba</option>
+              <option>Yabucoa</option>
+              <option>Yauco</option>
+            </select>
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Tipo de evento*</label>
@@ -281,7 +367,7 @@
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Cantidad de invitados*</label>
-            <input required name="invitados" type="number" min="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+            <input required name="invitados" type="number" min="1" max="500" step="1" title="Entre 1 y 500" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Paquete de interés</label>
@@ -382,6 +468,76 @@ async function saveToSheet(formData){
   }
 }
 
+    // --- Validaciones de formulario y anti-spam ---
+    function normalizePhone(value){
+      // deja solo dígitos y signos comunes
+      return (value || '').replace(/[^0-9]/g, '');
+    }
+
+    function showErrors(messages){
+      const box = document.getElementById('errors');
+      if(!box) return;
+      if(!messages.length){
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      box.classList.remove('hidden');
+      box.innerHTML = '<ul class="list-disc pl-5">' + messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
+    }
+
+    function todayISO(){
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      return d.toISOString().split('T')[0];
+    }
+
+    function validateForm(form){
+      const data = new FormData(form);
+      const errors = [];
+
+      // Honeypot: si viene con valor, consideramos SPAM y bloqueamos
+      const hp = (data.get('website') || '').trim();
+      if(hp){
+        console.warn('Honeypot activado; bloqueo de envío.');
+        return { ok:false, spam:true, data };
+      }
+
+      const nombre = (data.get('nombre') || '').trim();
+      const email  = (data.get('email') || '').trim();
+      const telRaw = (data.get('telefono') || '').trim();
+      const tel    = normalizePhone(telRaw);
+      const fecha  = (data.get('fecha') || '').trim();
+      const hora   = (data.get('hora') || '').trim();
+      const loc    = (data.get('localidad') || '').trim();
+      const invitados = parseInt(data.get('invitados') || '0', 10);
+
+      // Reglas
+      const reNombre = /^[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}$/;
+      const reEmail  = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+      if(!reNombre.test(nombre)) errors.push('Nombre: usa solo letras y espacios (2–60).');
+      if(!reEmail.test(email))   errors.push('Email: formato inválido.');
+      if(tel.length < 7 || tel.length > 15) errors.push('Teléfono: 7–15 dígitos.');
+      if(!fecha) errors.push('Selecciona la fecha del evento.');
+      if(!hora)  errors.push('Selecciona el horario de inicio.');
+      if(fecha && fecha < todayISO()) errors.push('La fecha no puede estar en el pasado.');
+      if(!loc) errors.push('Selecciona el municipio.');
+      if(!(invitados >= 1 && invitados <= 500)) errors.push('Invitados: debe ser entre 1 y 500.');
+
+      // Actualiza en FormData el teléfono normalizado (solo dígitos)
+      data.set('telefono', tel);
+
+      showErrors(errors);
+      return { ok: errors.length === 0, spam:false, data };
+    }
+
+    // Fijar mínimo de fecha a hoy
+    document.addEventListener('DOMContentLoaded', () => {
+      const fechaInput = document.querySelector('input[name="fecha"]');
+      if (fechaInput) fechaInput.min = todayISO();
+    });
+
     // Helper para armar mensaje desde el formulario
     function buildMessage(formData){
       return `Hola Monselatte, quiero cotizar una barra de café.\n\n` +
@@ -402,7 +558,12 @@ async function saveToSheet(formData){
     const formMsg = document.getElementById('formMsg');
     form?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const data = new FormData(form);
+      const result = validateForm(form);
+      if(!result.ok){
+        // si es spam, no mostramos nada especial
+        return;
+      }
+      const data = result.data;
       const msg = buildMessage(data);
       // Guarda en Google Sheets en segundo plano
       saveToSheet(data);
@@ -414,7 +575,11 @@ async function saveToSheet(formData){
 
     // Enviar por Email
     document.getElementById('sendEmail')?.addEventListener('click', () => {
-      const data = new FormData(form);
+      const result = validateForm(form);
+      if(!result.ok){
+        return;
+      }
+      const data = result.data;
       const msg = buildMessage(data);
       // Guarda en Google Sheets en segundo plano
       saveToSheet(data);
