@@ -179,7 +179,7 @@
           <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col ring-1 ring-transparent hover:ring-brand-green/40 group transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl reveal">
             <h3 class="font-serif text-2xl text-brand-green">Básico</h3>
             <p class="mt-2 text-sm uppercase tracking-wide text-brand-text/60">2 horas</p>
-            <p class="mt-3">Café (espresso/americano) + <strong>1 tipo de leche</strong>.</p>
+            <p class="mt-3"> Espresso, cortado, americano, latte + <strong>1 tipo de leche</strong>.</p>
             <p class="mt-2 text-brand-text/80">Ideal para eventos íntimos o como estación adicional.</p>
             <div class="mt-6 pt-6 border-t border-black/10">
               <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white w-max shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Solicita cotización</a>
@@ -193,7 +193,7 @@
               ★ Más elegido
             </span>
             <p class="mt-2 text-sm uppercase tracking-wide text-brand-text/60">Menú completo</p>
-            <p class="mt-3">Espresso, americano, latte, cappuccino, mocha, chocolate y chai latte.</p>
+            <p class="mt-3"> Mocha, chocolate y chai latte.</p>
             <p class="mt-2">Leches: entera y <strong>alternas</strong> (p. ej., avena). Sabores de temporada.</p>
             <div class="mt-6 pt-6 border-t border-black/10">
               <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md border-2 border-brand-gold text-brand-green w-max hover:-translate-y-0.5 hover:shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Ver detalles</a>
@@ -215,15 +215,32 @@
     </section>
 
     <!-- CTA INTERMEDIO -->
-    <section class="py-12 lg:py-16 bg-brand-green">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-        <h2 class="font-serif text-3xl sm:text-4xl font-semibold reveal">
+    <section id="cta" class="relative py-16 lg:py-20 bg-brand-green text-white overflow-hidden">
+      <!-- separador decorativo arriba (ola) -->
+      <svg class="absolute top-0 left-0 w-full -translate-y-full pointer-events-none" viewBox="0 0 1440 120" aria-hidden="true">
+        <path d="M0,80 C240,0 480,0 720,80 C960,160 1200,160 1440,80 L1440,120 L0,120 Z" fill="#0B3D2E" />
+      </svg>
+
+      <!-- patrón sutil (granos de café) -->
+      <div aria-hidden="true" class="absolute inset-0 opacity-20"
+           style="background-image:url('data:image/svg+xml;utf8,&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;24&quot; height=&quot;24&quot;&gt;&lt;g stroke=&quot;white&quot; stroke-width=&quot;1&quot; fill=&quot;none&quot; opacity=&quot;0.22&quot;&gt;&lt;ellipse cx=&quot;6&quot; cy=&quot;6&quot; rx=&quot;3.2&quot; ry=&quot;2.2&quot; transform=&quot;rotate(-25 6 6)&quot;/&gt;&lt;path d=&quot;M4.5 5.2 C5.2 6.3 6.8 6.5 7.5 5.5&quot; transform=&quot;rotate(-25 6 6)&quot;/&gt;&lt;ellipse cx=&quot;18&quot; cy=&quot;12&quot; rx=&quot;3.2&quot; ry=&quot;2.2&quot; transform=&quot;rotate(20 18 12)&quot;/&gt;&lt;path d=&quot;M16.6 11.2 C17.4 12.3 18.8 12.5 19.6 11.6&quot; transform=&quot;rotate(20 18 12)&quot;/&gt;&lt;/g&gt;&lt;/svg&gt;'); background-size:24px 24px;"></div>
+
+      <!-- brillos suaves -->
+      <div aria-hidden="true" class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
+      <div aria-hidden="true" class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amber-200/10 blur-3xl"></div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-white/70">
+          <!-- escudo -->
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l7 3v6c0 5.25-3.4 9.86-7 11-3.6-1.14-7-5.75-7-11V5l7-3z"/></svg>
+          Fechas limitadas
+        </span>
+        <h2 class="mt-2 font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold">
           Agenda tu barra de café móvil
         </h2>
-        <p class="mt-3 text-white/90 reveal">
-          Fechas limitadas. Te respondemos en 24–48 h.
-        </p>
-        <div class="mt-6 flex justify-center gap-4 reveal">
+        <p class="mt-3 text-white/85">Te respondemos en 24–48 h.</p>
+
+        <div class="mt-6 flex flex-wrap justify-center gap-4">
           <a href="#reserva"
              class="inline-flex items-center px-6 py-3 rounded-lg bg-white text-brand-green font-medium shadow-lg hover:shadow-2xl hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-green">
             Reservar ahora
@@ -232,6 +249,22 @@
              class="inline-flex items-center px-6 py-3 rounded-lg border border-white text-white bg-white/10 font-medium shadow hover:bg-white/20 hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-green">
             Ver paquetes
           </a>
+        </div>
+
+        <!-- badges de confianza -->
+        <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm text-white/90">
+          <span class="inline-flex items-center gap-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l7 3v6c0 5.25-3.4 9.86-7 11-3.6-1.14-7-5.75-7-11V5l7-3z"/></svg>
+            Seguro &amp; puntual
+          </span>
+          <span class="inline-flex items-center gap-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            5 invitados felices
+          </span>
+          <span class="inline-flex items-center gap-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z"/></svg>
+            Cobertura en toda la isla
+          </span>
         </div>
       </div>
     </section>
