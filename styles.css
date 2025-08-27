@@ -36,3 +36,20 @@ html { scroll-behavior: smooth; }
   .lb-caption-in { animation: lbCaptionIn .24s ease .06s both; }
   .lb-caption-out { animation: lbCaptionOut .16s ease both; }
 }
+
+/* ====== FAQ accordion ====== */
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, opacity .3s ease; opacity: 0; }
+.faq-item.is-open .faq-a { opacity: 1; }
+.faq-a-inner { border-top: 1px solid rgba(0,0,0,.06); }
+.faq-q:focus-visible { outline: 2px solid #0B3D2E; outline-offset: 2px; }
+.faq-item .faq-chevron { transform: rotate(0deg); transition: transform .25s ease; }
+.faq-item.is-open .faq-chevron { transform: rotate(180deg); }
+
+/* ====== Logo badge (footer) ====== */
+.logo-badge {
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}

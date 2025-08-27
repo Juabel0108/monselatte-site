@@ -285,3 +285,46 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
     touchX = null;
   });
 })();
+
+// --- FAQ acordeón (animación suave + accesibilidad) ---
+(function initFAQ(){
+  const items = Array.from(document.querySelectorAll('#faqList .faq-item'));
+  if (!items.length) return;
+
+  items.forEach(item => {
+    const btn = item.querySelector('.faq-q');
+    const panel = item.querySelector('.faq-a');
+
+    btn.setAttribute('aria-expanded', 'false');
+    btn.type = 'button';
+
+    function open() {
+      item.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      panel.style.opacity = '1';
+    }
+    function close() {
+      item.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+      panel.style.maxHeight = '0px';
+      panel.style.opacity = '0';
+    }
+    function toggle() {
+      const isOpen = item.classList.contains('is-open');
+      // Cerrar otros
+      items.forEach(i => { if (i !== item && i.classList.contains('is-open')) i.querySelector('.faq-q').click(); });
+      isOpen ? close() : open();
+    }
+
+    // iniciar cerrado
+    close();
+
+    btn.addEventListener('click', toggle);
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      if (e.key === 'ArrowDown') { items[(items.indexOf(item)+1)%items.length].querySelector('.faq-q').focus(); }
+      if (e.key === 'ArrowUp')   { items[(items.indexOf(item)-1+items.length)%items.length].querySelector('.faq-q').focus(); }
+    });
+  });
+})();

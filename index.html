@@ -40,6 +40,20 @@
     ]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question","name": "¿Con cuánta anticipación debo reservar?","acceptedAnswer": {"@type": "Answer","text": "Recomendamos reservar con 4–8 semanas; fechas pico conviene asegurar cuanto antes. Consultar disponibilidad de última hora es posible."}},
+      {"@type": "Question","name": "¿Qué incluye cada paquete?","acceptedAnswer": {"@type": "Answer","text": "Todos incluyen barista(s), equipo, insumos y vasos. Básico: espresso, americano, latte + 1 leche. Experiencia Monselatte: menú completo y leches alternas. Premium: personalización (stickers, QR y menú con branding)."}},
+      {"@type": "Question","name": "¿Cobertura y cargos por distancia?","acceptedAnswer": {"@type": "Answer","text": "Servimos toda Puerto Rico. Puede aplicar cargo de viaje según distancia y accesibilidad; se confirma en la cotización."}},
+      {"@type": "Question","name": "¿Necesitan electricidad o agua?","acceptedAnswer": {"@type": "Answer","text": "Requerimos toma eléctrica dedicada (110V) a menos de 15–20 pies. Llevamos nuestro propio agua y filtros. Para exteriores, coordinamos ubicación segura."}},
+      {"@type": "Question","name": "¿Tiempo de montaje y desmontaje?","acceptedAnswer": {"@type": "Answer","text": "Montaje: 45–60 min. Desmontaje: 30–45 min. Llegamos con tiempo para iniciar puntuales."}},
+      {"@type": "Question","name": "¿Métodos de pago y depósito?","acceptedAnswer": {"@type": "Answer","text": "PayPal Business y ATH Móvil. Se solicita depósito para asegurar la fecha. Políticas de cambios y reembolsos se envían junto a la cotización."}}
+    ]
+  }
+  </script>
 
   <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -86,9 +100,9 @@
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <a href="#inicio" class="flex items-center gap-3 group">
         <!-- Coloca aquí tu logo en <img> si quieres -->
-        <img src="assets/img/logo-monselatte.png" 
+        <img src="assets/img/logo-oficial.png" 
              alt="Logo Monselatte Coffee Bar" 
-             class="h-9 w-9 rounded-full object-cover">
+             class="h-12 w-12 object-cover rounded-full">
         <span class="font-semibold tracking-tight">Monselatte Coffee Bar</span>
       </a>
 
@@ -485,6 +499,107 @@
       </div>
     </section>
 
+    <!-- FAQ -->
+    <section id="faq" class="py-16 lg:py-24 bg-white scroll-mt-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Preguntas frecuentes</h2>
+          <div class="mt-2 h-1 w-16 bg-brand-gold rounded-full"></div>
+          <p class="mt-3 text-brand-text/80 reveal">Todo lo básico para planificar tu barra de café sin estrés.</p>
+        </div>
+
+        <div id="faqList" class="mt-8 space-y-3 reveal">
+          <!-- 1 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm13 8H4v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9Z"/></svg>
+              <span class="font-medium flex-1">¿Con cuánta anticipación debo reservar?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                Recomendamos reservar con 4–8 semanas. Para fechas pico (bodas/temporada navideña), lo ideal es asegurar cuanto antes. Siempre puedes consultar disponibilidad de última hora.
+              </div>
+            </div>
+          </article>
+
+          <!-- 2 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c-3 0-5 2-5 5 0 1 .3 1.9.8 2.7L12 21l4.2-10.3c.5-.8.8-1.7.8-2.7 0-3-2-5-5-5Zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg>
+              <span class="font-medium flex-1">¿Qué incluye cada paquete?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                Todos incluyen barista(s), equipo profesional, insumos y vasos. <em>Básico</em>: espresso, americano, latte + 1 leche. <em>Experiencia Monselatte</em>: menú completo y leches alternas. <em>Premium</em>: personalización (stickers, QR y menú con branding).
+              </div>
+            </div>
+          </article>
+
+          <!-- 3 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8Zm0 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+              <span class="font-medium flex-1">¿Cobertura y cargos por distancia?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                Servimos <strong>todo Puerto Rico</strong>. Puede aplicar cargo de viaje según la distancia y accesibilidad del venue. Te lo confirmamos con la cotización.
+              </div>
+            </div>
+          </article>
+
+          <!-- 4 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h12v4H6V2Zm-1 6h14l1 12H4L5 8Zm5 2v6h2v-6h-2Z"/></svg>
+              <span class="font-medium flex-1">¿Necesitan electricidad o agua?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                Requerimos <strong>toma eléctrica dedicada</strong> (110V) a menos de 15–20 pies. Llevamos nuestro propio agua y filtros. Si el evento es al aire libre, coordinamos ubicación segura para el equipo.
+              </div>
+            </div>
+          </article>
+
+          <!-- 5 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 10h12v2H6v-2Zm0 4h12v2H6v-2ZM7 2h2v3H7V2Zm8 0h2v3h-2V2Z"/></svg>
+              <span class="font-medium flex-1">¿Tiempo de montaje y desmontaje?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                El montaje toma <strong>~45–60 min</strong> y el desmontaje <strong>~30–45 min</strong>. Llegamos con tiempo para que todo esté listo antes del servicio.
+              </div>
+            </div>
+          </article>
+
+          <!-- 6 -->
+          <article class="faq-item rounded-xl bg-white border border-black/10 shadow-soft">
+            <button class="faq-q w-full px-4 sm:px-6 py-4 flex items-center gap-3 text-left">
+              <svg class="h-5 w-5 text-brand-green shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 7h16v12a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Zm4-5h8v3H8V2Z"/></svg>
+              <span class="font-medium flex-1">¿Métodos de pago y depósito?</span>
+              <svg class="faq-chevron h-5 w-5 text-brand-green" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.13l3.71-2.9a.75.75 0 0 1 .92 1.18l-4.25 3.33a.75.75 0 0 1-.92 0L5.21 8.41a.75.75 0 0 1 .02-1.2Z"/></svg>
+            </button>
+            <div class="faq-a px-4 sm:px-6">
+              <div class="faq-a-inner py-3 text-brand-text/80">
+                Aceptamos <strong>PayPal Business</strong> y <strong>ATH Móvil</strong> (depósito para asegurar fecha). En la etapa 2 habilitaremos pagos desde la web. Recibirás las políticas de cambios y reembolsos junto a la cotización.
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="mt-8 text-center">
+          <a href="#reserva" class="inline-flex items-center px-6 py-3 rounded-lg bg-brand-green text-white font-medium shadow-lg hover:shadow-2xl hover:scale-105 transition">Reservar ahora</a>
+        </div>
+      </div>
+    </section>
+
     <!-- CONTACTO -->
     <section id="contacto" class="py-16 lg:py-24 scroll-mt-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
@@ -530,10 +645,71 @@
   </div>
   </main>
 
-  <footer class="border-t border-black/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm flex flex-wrap items-center justify-between gap-4">
-      <p>© <span id="year"></span> Monselatte Coffee Bar. Todos los derechos reservados.</p>
-      <p class="text-brand-text/70">El depósito asegura la fecha. Políticas de cambios y reembolsos se enviarán junto a la cotización.</p>
+  <footer class="relative bg-white">
+    <!-- separador superior curvo -->
+    <svg class="absolute -top-1 left-0 w-full h-8 text-white pointer-events-none" viewBox="0 0 1440 48" fill="currentColor" aria-hidden="true">
+      <path d="M0,24 C240,0 480,0 720,24 C960,48 1200,48 1440,24 L1440,48 L0,48 Z"></path>
+    </svg>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid gap-10 md:grid-cols-4">
+        <!-- Brand -->
+        <div>
+          <a href="#inicio" class="inline-flex items-center gap-3">
+            <span class="logo-badge inline-flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14">
+              <img src="assets/img/logo-oficial.png" alt="Monselatte Coffee Bar — logo oficial" class="h-12 w-12 sm:h-14 sm:w-14 object-cover rounded-full" loading="lazy" decoding="async">
+            </span>
+            <span class="font-semibold tracking-tight">Monselatte Coffee Bar</span>
+          </a>
+          <p class="mt-3 text-brand-text/70">Barra de café móvil para bodas, cumpleaños y eventos corporativos en todo Puerto Rico.</p>
+          <a href="#reserva" class="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white shadow hover:shadow-lg hover:scale-105 transition">Reserva tu fecha</a>
+        </div>
+
+        <!-- Navegación -->
+        <nav aria-label="Footer" class="grid gap-2">
+          <h3 class="text-sm font-semibold text-brand-text/80 uppercase tracking-wider">Navegación</h3>
+          <a class="hover:text-brand-green" href="#sobre">Sobre</a>
+          <a class="hover:text-brand-green" href="#paquetes">Paquetes</a>
+          <a class="hover:text-brand-green" href="#galeria">Galería</a>
+          <a class="hover:text-brand-green" href="#testimonios">Testimonios</a>
+          <a class="hover:text-brand-green" href="#contacto">Contacto</a>
+          <a class="hover:text-brand-green" href="#faq">FAQ</a>
+        </nav>
+
+        <!-- Contacto -->
+        <div class="grid gap-2">
+          <h3 class="text-sm font-semibold text-brand-text/80 uppercase tracking-wider">Contacto</h3>
+          <a class="underline hover:text-brand-green" href="mailto:monselattepr@gmail.com">monselattepr@gmail.com</a>
+          <a class="underline hover:text-brand-green" href="https://wa.me/17876108953" target="_blank" rel="noopener">+1 (787) 610‑8953</a>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 pt-1 flex-wrap">
+            <a class="inline-flex items-center gap-2 hover:text-brand-green" href="https://instagram.com/cafemonselatte" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a5.5 5.5 0 1 1 0 11a5.5 5.5 0 0 1 0-11zm5.75-.75a1 1 0 1 1 0 2a1 1 0 0 1 0-2z"/></svg>
+              <span>@cafemonselatte</span>
+            </a>
+            <a class="inline-flex items-center gap-2 hover:text-brand-green" href="https://facebook.com/cafemonselatte" target="_blank" rel="noopener" aria-label="Facebook">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 22v-8h3l1-4h-4V8a1 1 0 0 1 1-1h3V3h-3a5 5 0 0 0-5 5v2H6v4h3v8h4z"/></svg>
+              <span>@cafemonselatte</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="grid gap-2">
+          <h3 class="text-sm font-semibold text-brand-text/80 uppercase tracking-wider">Información</h3>
+          <p class="text-brand-text/70">Respuesta en 24–48 h. Fechas limitadas.</p>
+          <p class="text-brand-text/70">Depósito asegura la fecha (PayPal/ATH Móvil).</p>
+          <a href="#reserva" class="mt-2 inline-flex w-max items-center gap-2 text-brand-green hover:underline">Solicitar cotización →</a>
+        </div>
+      </div>
+
+      <div class="mt-10 pt-6 border-t border-black/10 flex flex-wrap items-center justify-between gap-4 text-sm text-brand-text/70">
+        <p>© <span id="year"></span> Monselatte Coffee Bar. Todos los derechos reservados.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" class="hover:text-brand-green">Términos</a>
+          <a href="#" class="hover:text-brand-green">Privacidad</a>
+          <a href="#inicio" class="hover:text-brand-green">Volver arriba ↑</a>
+        </div>
+      </div>
     </div>
   </footer>
 
