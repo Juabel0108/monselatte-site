@@ -6,10 +6,40 @@
   <title>Monselatte Coffee Bar | Barra de café para eventos en Puerto Rico</title>
   <meta name="description" content="Barra de café para bodas, cumpleaños y eventos corporativos en Puerto Rico. Paquetes claros, baristas profesionales y reservas en línea." />
   <meta name="theme-color" content="#0B3D2E" />
+
   <meta property="og:title" content="Monselatte Coffee Bar" />
   <meta property="og:description" content="Barra de café para tu evento, en toda Puerto Rico." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.jpg" />
+
+  <link rel="canonical" href="https://monselatte.com/" />
+  <!-- Preload hero image for faster LCP -->
+  <link rel="preload" as="image" href="assets/img/hero-monselatte.jpeg" fetchpriority="high">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Monselatte Coffee Bar" />
+  <meta name="twitter:description" content="Barra de café para tu evento, en toda Puerto Rico." />
+  <meta name="twitter:image" content="https://monselatte.com/og-image.jpg" />
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Monselatte Coffee Bar",
+    "image": "https://monselatte.com/assets/img/logo-monselatte.png",
+    "url": "https://monselatte.com/",
+    "telephone": "+1-787-610-8953",
+    "areaServed": "Puerto Rico",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "PR"
+    },
+    "sameAs": [
+      "https://instagram.com/cafemonselatte",
+      "https://facebook.com/cafemonselatte"
+    ]
+  }
+  </script>
 
   <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,6 +98,10 @@
     @media (prefers-reduced-motion: reduce){
       .reveal{ opacity: 1; transform: none; }
     }
+    /* Lightbox (utiliza utilidades Tailwind para layout; aquí solo transiciones) */
+    .lb-hidden { opacity: 0; transform: scale(.98); pointer-events: none; }
+    .lb-visible { opacity: 1; transform: none; pointer-events: auto; }
+    .lb-transition { transition: opacity .2s ease, transform .2s ease; }
   </style>
 </head>
 <body class="bg-brand-cream text-brand-text font-sans">
@@ -114,9 +148,12 @@
     <section class="relative scroll-mt-20">
       <!-- Fondo con overlay oscuro -->
       <div class="absolute inset-0">
-        <img src="assets/img/hero-monselatte.jpeg" 
+        <img src="assets/img/hero-monselatte.jpeg"
              alt="Barra de café móvil Monselatte en evento"
-             class="h-full w-full object-cover">
+             class="h-full w-full object-cover"
+             fetchpriority="high"
+             decoding="async"
+             loading="eager">
         <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/30"></div>
       </div>
 
@@ -259,7 +296,7 @@
           </span>
           <span class="inline-flex items-center gap-2">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            5 invitados felices
+            invitados felices
           </span>
           <span class="inline-flex items-center gap-2">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z"/></svg>
@@ -278,13 +315,13 @@
         </div>
         <!-- SUGERENCIA: 900–1200px de ancho por imagen, relación 4:3 o 1:1, peso <200KB -->
         <div class="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-1.jpeg" alt="Barra en boda" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-2.jpeg" alt="Latte art" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-3.jpeg" alt="Invitados disfrutando café" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-4.jpeg" alt="Set up elegante" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-5.jpeg" alt="Detalle equipo" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-6.jpeg" alt="Café servido al momento" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-7.jpeg" alt="Evento corporativo" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-1.jpeg" alt="Latte art en vivo" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-2.jpeg" alt="Montaje de barra en interior" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-3.jpeg" alt="Detalle de máquina de espresso" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-4.jpeg" alt="Set up elegante en terraza" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-5.jpeg" alt="Vaso Monselatte — detalle de equipo" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-6.jpeg" alt="Latte recién preparado" loading="lazy">
+          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-7.jpeg" alt="Barra para evento corporativo" loading="lazy">
           <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-8.jpeg" alt="Café para invitados" loading="lazy">
         </div>
       </div>
@@ -501,6 +538,20 @@
     <!-- ícono simple -->
     <span class="text-xl">☏</span>
   </a>
+
+  <!-- Lightbox de Galería -->
+  <div id="lightbox" class="fixed inset-0 z-50 lb-hidden lb-transition hidden">
+    <!-- Fondo -->
+    <div id="lbBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+    <!-- Controles -->
+    <button id="lbClose" class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Cerrar">✕</button>
+    <button id="lbPrev" class="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Anterior">‹</button>
+    <button id="lbNext" class="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Siguiente">›</button>
+    <!-- Imagen -->
+    <img id="lbImg" alt="" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[92vw] max-h-[85vh] rounded-2xl shadow-xl" />
+    <!-- Caption -->
+    <div id="lbCaption" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/90 text-sm px-3 py-1 bg-black/30 rounded"></div>
+  </div>
   </main>
 
   <footer class="border-t border-black/10">
@@ -712,6 +763,84 @@ async function saveToSheet(formData){
       window.location.href = mailto;
       document.getElementById('saveHint')?.classList.remove('hidden');
     });
+
+    // --- Lightbox de galería ---
+    (function initLightbox(){
+      const imgs = Array.from(document.querySelectorAll('#galeria img'));
+      if (!imgs.length) return;
+
+      const modal    = document.getElementById('lightbox');
+      const imgEl    = document.getElementById('lbImg');
+      const caption  = document.getElementById('lbCaption');
+      const btnClose = document.getElementById('lbClose');
+      const btnPrev  = document.getElementById('lbPrev');
+      const btnNext  = document.getElementById('lbNext');
+      const backdrop = document.getElementById('lbBackdrop');
+
+      let idx = 0;
+      let touchX = null;
+
+      function show(i){
+        idx = (i + imgs.length) % imgs.length;
+        const el = imgs[idx];
+        imgEl.src = el.getAttribute('src');
+        imgEl.alt = el.getAttribute('alt') || '';
+        caption.textContent = el.getAttribute('alt') || '';
+      }
+      function open(i){
+        show(i);
+        modal.classList.remove('hidden','lb-hidden');
+        // for transition
+        requestAnimationFrame(() => modal.classList.add('lb-visible'));
+        document.body.classList.add('overflow-hidden');
+      }
+      function close(){
+        modal.classList.remove('lb-visible');
+        modal.classList.add('lb-hidden');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+        document.body.classList.remove('overflow-hidden');
+      }
+      function prev(){ show(idx - 1); }
+      function next(){ show(idx + 1); }
+
+      imgs.forEach((el, i) => {
+        el.classList.add('cursor-zoom-in');
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          open(i);
+        });
+        // Tecla Enter al enfocar la imagen
+        el.setAttribute('tabindex', '0');
+        el.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            open(i);
+          }
+        });
+      });
+
+      btnClose.addEventListener('click', close);
+      backdrop.addEventListener('click', close);
+      btnPrev.addEventListener('click', prev);
+      btnNext.addEventListener('click', next);
+
+      // Navegación por teclado
+      window.addEventListener('keydown', (e) => {
+        if (modal.classList.contains('hidden')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') prev();
+        else if (e.key === 'ArrowRight') next();
+      });
+
+      // Swipe en móvil
+      imgEl.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, {passive:true});
+      imgEl.addEventListener('touchend', (e) => {
+        if (touchX == null) return;
+        const dx = e.changedTouches[0].clientX - touchX;
+        if (Math.abs(dx) > 40) (dx > 0 ? prev() : next());
+        touchX = null;
+      });
+    })();
   </script>
 </body>
 </html>
