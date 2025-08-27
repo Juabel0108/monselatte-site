@@ -1,0 +1,38 @@
+
+/* ====== Utilidades base ====== */
+html { scroll-behavior: smooth; }
+.elevated { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+.text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.45); }
+.text-shadow-strong { text-shadow: 0 4px 16px rgba(0,0,0,.65); }
+.nav-link-active { text-decoration: underline; text-underline-offset: 6px; }
+
+/* ====== Reveal on scroll ====== */
+.reveal{ opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; will-change: opacity, transform; }
+.reveal-visible{ opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce){ .reveal{ opacity: 1; transform: none; } }
+
+/* ====== Lightbox base ====== */
+.lb-hidden { opacity: 0; transform: scale(.98); pointer-events: none; }
+.lb-visible { opacity: 1; transform: none; pointer-events: auto; }
+.lb-transition { transition: opacity .2s ease, transform .2s ease; }
+
+/* ====== Lightbox animations ====== */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes lbFadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes lbFadeOut { from { opacity: 1 } to { opacity: 0 } }
+
+  @keyframes lbZoomIn { from { opacity: 0; transform: translate(-50%, -48%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  @keyframes lbZoomOut { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -48%) scale(.96); } }
+
+  @keyframes lbCaptionIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @keyframes lbCaptionOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 8px); } }
+
+  .lb-backdrop-in { animation: lbFadeIn .22s ease both; }
+  .lb-backdrop-out { animation: lbFadeOut .18s ease both; }
+
+  .lb-img-in { animation: lbZoomIn .26s cubic-bezier(.22,.61,.36,1) both; }
+  .lb-img-out { animation: lbZoomOut .18s ease both; }
+
+  .lb-caption-in { animation: lbCaptionIn .24s ease .06s both; }
+  .lb-caption-out { animation: lbCaptionOut .16s ease both; }
+}
