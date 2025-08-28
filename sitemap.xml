@@ -7,3 +7,67 @@
     <priority>1.0</priority>
   </url>
 </urlset>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://monselatte.com/</loc>
+    <lastmod>2025-08-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+
+    <!-- Imágenes clave del sitio para Google Images -->
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/hero-monselatte.jpeg</image:loc>
+      <image:title>Barra de café móvil Monselatte en evento</image:title>
+      <image:caption>Experiencia Monselatte Coffee Bar en eventos en Puerto Rico</image:caption>
+    </image:image>
+
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/sobre.jpeg</image:loc>
+      <image:title>Detalle de latte art y equipo profesional</image:title>
+      <image:caption>Sobre Monselatte: baristas y equipo premium</image:caption>
+    </image:image>
+
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-1.jpeg</image:loc>
+      <image:title>Latte art en vivo</image:title>
+      <image:caption>Latte art en vivo durante eventos</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-2.jpeg</image:loc>
+      <image:title>Montaje de barra en interior</image:title>
+      <image:caption>Montaje de barra de café en interior</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-3.jpeg</image:loc>
+      <image:title>Detalle de máquina de espresso</image:title>
+      <image:caption>Equipo profesional de espresso</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-4.jpeg</image:loc>
+      <image:title>Set up elegante en terraza</image:title>
+      <image:caption>Setup elegante de la barra en terraza</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-5.jpeg</image:loc>
+      <image:title>Vaso Monselatte — detalle de equipo</image:title>
+      <image:caption>Detalle del equipo y vasos Monselatte</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-6.jpeg</image:loc>
+      <image:title>Latte recién preparado</image:title>
+      <image:caption>Latte recién preparado para invitados</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-7.jpeg</image:loc>
+      <image:title>Barra para evento corporativo</image:title>
+      <image:caption>Barra de café para evento corporativo</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://monselatte.com/assets/img/galeria-8.jpeg</image:loc>
+      <image:title>Café para invitados</image:title>
+      <image:caption>Café para invitados en evento especial</image:caption>
+    </image:image>
+  </url>
+</urlset>
