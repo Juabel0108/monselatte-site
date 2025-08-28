@@ -19,7 +19,7 @@
   <link rel="icon" type="image/png" sizes="32x32"  href="assets/img/logo-oficial.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/img/logo-oficial.png" />
   <!-- Preload hero image for faster LCP -->
-  <link rel="preload" as="image" href="assets/img/hero-monselatte.jpeg" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/optimized/hero-monselatte.webp" type="image/webp" fetchpriority="high">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Monselatte Coffee Bar" />
@@ -142,9 +142,10 @@
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <a href="#inicio" class="flex items-center gap-3 group">
         <!-- Coloca aquí tu logo en <img> si quieres -->
-        <img src="assets/img/logo-oficial.png" 
-             alt="Logo Monselatte Coffee Bar" 
-             class="h-12 w-12 object-cover rounded-full">
+        <img src="assets/img/logo-oficial.png"
+             alt="Logo Monselatte Coffee Bar"
+             class="h-12 w-12 object-cover rounded-full"
+             width="48" height="48" decoding="async" />
         <span class="font-semibold tracking-tight">Monselatte Coffee Bar</span>
       </a>
 
@@ -180,12 +181,15 @@
     <section class="relative scroll-mt-20">
       <!-- Fondo con overlay oscuro -->
       <div class="absolute inset-0">
-        <img src="assets/img/hero-monselatte.jpeg"
-             alt="Barra de café móvil Monselatte en evento"
-             class="h-full w-full object-cover"
-             fetchpriority="high"
-             decoding="async"
-             loading="eager">
+        <picture>
+          <source srcset="assets/img/optimized/hero-monselatte.webp" type="image/webp">
+          <img src="assets/img/hero-monselatte.jpeg"
+               alt="Barra de café móvil Monselatte en evento"
+               class="h-full w-full object-cover"
+               fetchpriority="high"
+               width="1600" height="900"
+               decoding="async" loading="eager" />
+        </picture>
         <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/30"></div>
       </div>
 
@@ -214,7 +218,7 @@
     </section>
 
     <!-- SOBRE NOSOTROS -->
-    <section id="sobre" class="py-16 lg:py-24 bg-white scroll-mt-20">
+    <section id="sobre" class="py-16 lg:py-24 bg-white scroll-mt-20 cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-10 items-center">
         <div>
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Sobre nosotros</h2>
@@ -229,13 +233,18 @@
         </div>
         <div>
           <!-- SUGERENCIA: 1200px de ancho mínimo (JPG/WebP <250KB) -->
-          <img src="assets/img/sobre.jpeg" alt="Detalle de latte art y equipo profesional" class="w-full rounded-2xl shadow-soft object-cover reveal" loading="lazy">
+          <picture>
+            <source srcset="assets/img/optimized/sobre.webp" type="image/webp">
+            <img src="assets/img/sobre.jpeg" alt="Detalle de latte art y equipo profesional"
+                 class="w-full rounded-2xl shadow-soft object-cover reveal"
+                 width="1200" height="900" loading="lazy" decoding="async" />
+          </picture>
         </div>
       </div>
     </section>
 
     <!-- PAQUETES -->
-    <section id="paquetes" class="py-16 lg:py-24 scroll-mt-20">
+    <section id="paquetes" class="py-16 lg:py-24 scroll-mt-20 cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Paquetes de servicio</h2>
@@ -338,7 +347,7 @@
       </div>
     </section>
     <!-- GALERÍA -->
-    <section id="galeria" class="py-16 lg:py-24 bg-white scroll-mt-20">
+    <section id="galeria" class="py-16 lg:py-24 bg-white scroll-mt-20 cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Galería</h2>
@@ -347,20 +356,68 @@
         </div>
         <!-- SUGERENCIA: 900–1200px de ancho por imagen, relación 4:3 o 1:1, peso <200KB -->
         <div class="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-1.jpeg" alt="Latte art en vivo" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-2.jpeg" alt="Montaje de barra en interior" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-3.jpeg" alt="Detalle de máquina de espresso" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-4.jpeg" alt="Set up elegante en terraza" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-5.jpeg" alt="Vaso Monselatte — detalle de equipo" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-6.jpeg" alt="Latte recién preparado" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-7.jpeg" alt="Barra para evento corporativo" loading="lazy">
-          <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal" src="assets/img/galeria-8.jpeg" alt="Café para invitados" loading="lazy">
+          <picture>
+            <source srcset="assets/img/optimized/galeria-1.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-1.jpeg" alt="Latte art en vivo"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-2.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-2.jpeg" alt="Montaje de barra en interior"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-3.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-3.jpeg" alt="Detalle de máquina de espresso"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-4.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-4.jpeg" alt="Set up elegante en terraza"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-5.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-5.jpeg" alt="Vaso Monselatte — detalle de equipo"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-6.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-6.jpeg" alt="Latte recién preparado"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-7.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-7.jpeg" alt="Barra para evento corporativo"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
+          <picture>
+            <source srcset="assets/img/optimized/galeria-8.webp" type="image/webp">
+            <img class="w-full aspect-[4/3] object-cover rounded-2xl shadow-soft transition hover:shadow-lg hover:scale-[1.02] reveal"
+                 src="assets/img/galeria-8.jpeg" alt="Café para invitados"
+                 width="1200" height="900" loading="lazy" decoding="async"
+                 sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" />
+          </picture>
         </div>
       </div>
     </section>
 
     <!-- TESTIMONIOS -->
-    <section id="testimonios" class="py-16 lg:py-24 scroll-mt-20">
+    <section id="testimonios" class="py-16 lg:py-24 scroll-mt-20 cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Lo que dicen nuestros clientes</h2>
@@ -387,7 +444,7 @@
     </section>
 
     <!-- RESERVA TU FECHA -->
-    <section id="reserva" class="py-16 lg:py-24 bg-white scroll-mt-20">
+    <section id="reserva" class="py-16 lg:py-24 bg-white scroll-mt-20 cv">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Reserva tu fecha</h2>
         <div class="mt-2 h-1 w-16 bg-brand-gold rounded-full"></div>
@@ -542,7 +599,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="py-16 lg:py-24 bg-brand-cream border-t border-black/10 scroll-mt-20 faq-section">
+    <section id="faq" class="py-16 lg:py-24 bg-brand-cream border-t border-black/10 scroll-mt-20 faq-section cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
           <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-brand-green reveal">Preguntas frecuentes</h2>
@@ -690,7 +747,9 @@
         <div>
           <a href="#inicio" class="inline-flex items-center gap-3">
             <span class="logo-badge inline-flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14">
-              <img src="assets/img/logo-oficial.png" alt="Monselatte Coffee Bar — logo oficial" class="h-12 w-12 sm:h-14 sm:w-14 object-cover rounded-full" loading="lazy" decoding="async">
+              <img src="assets/img/logo-oficial.png" alt="Monselatte Coffee Bar — logo oficial"
+                   class="h-12 w-12 sm:h-14 sm:w-14 object-cover rounded-full"
+                   width="56" height="56" loading="lazy" decoding="async" />
             </span>
             <span class="font-semibold tracking-tight">Monselatte Coffee Bar</span>
           </a>
@@ -742,7 +801,7 @@
           </div>
 
           <!-- Redes -->
-          <div class="mt-2 flex items-center gap-3" aria-label="Redes sociales">
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2" aria-label="Redes sociales">
             <a href="https://instagram.com/cafemonselatte" target="_blank" rel="noopener" class="social-pill" aria-label="Instagram @cafemonselatte">
               <svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm5.25-.75a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
               <span>@cafemonselatte</span>

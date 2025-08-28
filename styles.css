@@ -89,3 +89,12 @@ html { scroll-behavior: smooth; }
   font-size:.85rem;
 }
 .social-pill:hover{ border-color: rgba(11,61,46,.25); }
+
+/* ====== Content-visibility to reduce main-thread work ====== */
+.cv{
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
+}
+@media (min-width: 768px){
+  .cv{ contain-intrinsic-size: 1100px; }
+}
