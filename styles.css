@@ -53,3 +53,39 @@ html { scroll-behavior: smooth; }
   border: none;
   box-shadow: none;
 }
+
+/* ====== FAQ section background (sutil) ====== */
+.faq-section{
+  background-image:
+    radial-gradient(20px 20px at 20px 20px, rgba(0,0,0,.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ====== Contact buttons ====== */
+.contact-btn{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.6rem .9rem; border-radius:.75rem;
+  font-weight:600; border:1px solid rgba(0,0,0,.08);
+  background:#fff; color:#0B3D2E;
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.contact-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+.contact-btn__icon{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:1.75rem; width:1.75rem; border-radius:.5rem;
+  background:rgba(11,61,46,.08);
+}
+.contact-btn--wa{ border-color: rgba(37,211,102,.25); }
+.contact-btn--wa .contact-btn__icon{ background:rgba(37,211,102,.14); color:#128C7E; }
+.contact-btn--mail .contact-btn__icon{ background:rgba(0,0,0,.08); }
+.contact-btn--tel .contact-btn__icon{ background:rgba(0,0,0,.08); }
+
+/* ====== Social pills ====== */
+.social-pill{
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.35rem .6rem; border-radius:9999px;
+  border:1px solid rgba(0,0,0,.08); background:#fff; color:#0B3D2E;
+  font-size:.85rem;
+}
+.social-pill:hover{ border-color: rgba(11,61,46,.25); }
