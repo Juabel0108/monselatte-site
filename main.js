@@ -1,4 +1,3 @@
-
 // Año dinámico en footer
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -326,5 +325,104 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
       if (e.key === 'ArrowDown') { items[(items.indexOf(item)+1)%items.length].querySelector('.faq-q').focus(); }
       if (e.key === 'ArrowUp')   { items[(items.indexOf(item)-1+items.length)%items.length].querySelector('.faq-q').focus(); }
     });
+  });
+})();
+
+// --- Analytics (GA4) instrumentation ---------------------------------
+(function () {
+  if (typeof window.gtag !== 'function') return; // GA no cargó
+
+  function send(name, params) {
+    try {
+      window.gtag('event', name, Object.assign({ transport_type: 'beacon' }, params || {}));
+    } catch (e) {
+      console && console.warn && console.warn('gtag failed:', e);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    // 1) Nav clicks
+    document.querySelectorAll('#navLinks a').forEach((a) => {
+      a.addEventListener('click', function () {
+        send('nav_click', {
+          link: a.getAttribute('href') || '',
+          text: (a.textContent || '').trim(),
+        });
+      });
+    });
+
+    // 2) CTAs hacia secciones
+    document.querySelectorAll('a[href="#reserva"]').forEach((a) => {
+      a.addEventListener('click', function () {
+        send('cta_click', { cta: 'reserva', section: a.closest('section')?.id || 'header' });
+      });
+    });
+    document.querySelectorAll('a[href="#paquetes"]').forEach((a) => {
+      a.addEventListener('click', function () {
+        send('cta_click', { cta: 'paquetes', section: a.closest('section')?.id || 'header' });
+      });
+    });
+
+    // 3) Contacto (WhatsApp, email, teléfono)
+    document.querySelectorAll(`a[href*="wa.me/${WA_NUMBER}"]`).forEach((a) => {
+      a.addEventListener('click', function () {
+        const location = a.closest('footer')
+          ? 'footer'
+          : a.classList.contains('fixed')
+          ? 'floating'
+          : 'body';
+        send('contact', { method: 'whatsapp', location });
+      });
+    });
+    document.querySelectorAll('a[href^="mailto:"]').forEach((a) => {
+      a.addEventListener('click', function () {
+        send('contact', { method: 'email' });
+      });
+    });
+    document.querySelectorAll('a[href^="tel:"]').forEach((a) => {
+      a.addEventListener('click', function () {
+        send('contact', { method: 'phone' });
+      });
+    });
+
+    // 4) Formulario (lead intent)
+    const form = document.getElementById('leadForm');
+    const emailBtn = document.getElementById('sendEmail');
+
+    function readForm() {
+      if (!form) return {};
+      const fd = new FormData(form);
+      return {
+        form_channel: 'email', // se sobrescribe abajo
+        municipio: (fd.get('localidad') || '').toString(),
+        event_type: (fd.get('tipo') || '').toString(),
+        package: (fd.get('paquete') || '').toString(),
+        guests: parseInt(fd.get('invitados') || '0', 10) || 0,
+        event_date: (fd.get('fecha') || '').toString(),
+        event_time: (fd.get('hora') || '').toString(),
+      };
+    }
+
+    // Envío por WhatsApp (submit del form)
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        const params = readForm();
+        const ch =
+          (e.submitter && e.submitter.dataset && e.submitter.dataset.channel) || 'whatsapp';
+        params.form_channel = ch;
+        send('generate_lead', params); // evento de conversión
+        send('contact', { method: ch });
+      });
+    }
+
+    // Click en "Enviar por Email"
+    if (emailBtn && form) {
+      emailBtn.addEventListener('click', function () {
+        const params = readForm();
+        params.form_channel = 'email';
+        send('generate_lead', params);
+        send('contact', { method: 'email' });
+      });
+    }
   });
 })();
