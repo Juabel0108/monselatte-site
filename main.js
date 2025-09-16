@@ -111,6 +111,7 @@ function validateForm(form){
   const fecha=(data.get('fecha')||'').trim();
   const hora=(data.get('hora')||'').trim();
   const loc=(data.get('localidad')||'').trim();
+  const direccion=(data.get('direccion')||'').trim();
   const invitados=parseInt(data.get('invitados')||'0',10);
 
   const reNombre=/^[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}$/;
@@ -123,6 +124,7 @@ function validateForm(form){
   if(!hora) errors.push('Selecciona el horario de inicio.');
   if(fecha && fecha < todayISO()) errors.push('La fecha no puede estar en el pasado.');
   if(!loc) errors.push('Selecciona el municipio.');
+  if(!direccion || direccion.length < 8) errors.push('Dirección: escribe una dirección más detallada (mínimo 8 caracteres).');
   if(!(invitados >= 1 && invitados <= 500)) errors.push('Invitados: debe ser entre 1 y 500.');
 
   data.set('telefono', tel);
@@ -144,6 +146,7 @@ function buildMessage(formData){
          `Fecha: ${formData.get('fecha')}\n` +
          `Hora de inicio: ${formData.get('hora')}\n` +
          `Localidad: ${formData.get('localidad')}\n` +
+         `Dirección: ${formData.get('direccion')}\n` +
          `Tipo de evento: ${formData.get('tipo')}\n` +
          `Invitados: ${formData.get('invitados')}\n` +
          `Paquete: ${formData.get('paquete')}\n` +
