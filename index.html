@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-PR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -437,7 +437,10 @@
             <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true">
           </div>
           <!-- Contenedor de errores de validación -->
-          <div id="errors" class="sm:col-span-2 text-sm text-red-700 hidden"></div>
+          <div id="errors"
+               class="sm:col-span-2 text-sm text-red-700 hidden"
+               role="status"
+               aria-live="polite"></div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Nombre y Apellidos*</label>
             <input required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" title="Solo letras, espacios y acentos (2–60 caracteres)" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
@@ -820,6 +823,6 @@
     </div>
   </footer>
 
-  <script src="main.js"></script>
+  <script defer src="main.js"></script>
 </body>
 </html>

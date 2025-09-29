@@ -10,7 +10,7 @@ menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
 const EMAIL_TO  = 'monselattepr@gmail.com';
-const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzkfda9BR_FiaXCWIjdUSi2DH6evdxeF4OZufOkCmDZ1vDdzEZCxnPh2_xMYb4xhrvdtA/exec';
+const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbzkfda9BR_FiaXCWIjdUSi2DH6evdxeF4OZufOkCmDZ1vDdzEZCxnPh2_xMYb4xhrvdtA/exec';
 
 // Header: sombra y fondo al hacer scroll
 (function(){
@@ -75,7 +75,7 @@ const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzkfda9BR_FiaX
 // Guardar en Google Sheets (background)
 async function saveToSheet(formData){
   try {
-    const payload = Object.fromEntries(formData.entries());
+    const payload = Object.fromEntries(formData.entries()); Object.assign(payload, getUTM());
     fetch(SHEET_WEBAPP_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -132,6 +132,36 @@ function validateForm(form){
   return { ok: errors.length === 0, spam:false, data };
 }
 
+
+// --- Helpers: Query string & UTM tracking ---
+function getSearchParams() {
+  try { return new URLSearchParams(window.location.search); } catch { return new URLSearchParams(); }
+}
+function getUTM() {
+  const sp = getSearchParams();
+  const utm = {
+    utm_source: sp.get('utm_source') || '',
+    utm_medium: sp.get('utm_medium') || '',
+    utm_campaign: sp.get('utm_campaign') || '',
+    utm_content: sp.get('utm_content') || '',
+    utm_term: sp.get('utm_term') || '',
+    referrer: document.referrer || '',
+    page_path: location.pathname || '',
+  };
+  return utm;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  // Preseleccionar paquete via ?paquete=Básico|Experiencia%20Monselatte|Premium
+  const pkg = getSearchParams().get('paquete');
+  if (pkg) {
+    const sel = document.querySelector('select[name=\"paquete\"]');
+    if (sel) {
+      const options = Array.from(sel.options).map(o => o.value.toLowerCase());
+      const idx = options.indexOf(pkg.toLowerCase());
+      if (idx >= 0) sel.selectedIndex = idx;
+    }
+  }
+});
 // Fijar mínimo de fecha a hoy
 document.addEventListener('DOMContentLoaded', () => {
   const fechaInput = document.querySelector('input[name="fecha"]');
