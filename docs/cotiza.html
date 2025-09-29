@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es-PR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solicita tu cotización | Monselatte Coffee Bar</title>
+  <meta name="description" content="Recibe una cotización de nuestra barra de café para tu evento en Puerto Rico. Respuesta en 24–48 h." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0B3D2E" />
+  <meta name="sheet-webapp-url" content="https://script.google.com/macros/s/AKfycbzkfda9BR_FiaXCWIjdUSi2DH6evdxeF4OZufOkCmDZ1vDdzEZCxnPh2_xMYb4xhrvdtA/exec">
+
+  <meta property="og:title" content="Solicita tu cotización | Monselatte Coffee Bar" />
+  <meta property="og:description" content="Cuéntanos tu evento y recibe tu cotización por WhatsApp o email." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://monselatte.com/assets/img/logo-oficial.png" />
+  <link rel="canonical" href="https://monselatte.com/cotiza" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/logo-oficial.png" />
+  <link rel="icon" type="image/png" sizes="32x32"  href="assets/img/logo-oficial.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/img/logo-oficial.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/tw.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MGKWJKDS2L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-MGKWJKDS2L');
+  </script>
+</head>
+<body class="bg-brand-cream text-brand-text font-sans">
+  <header class="bg-white/80 backdrop-blur border-b border-black/5">
+    <nav class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="assets/img/logo-oficial.png" alt="Monselatte Coffee Bar" class="h-10 w-10 rounded-full object-cover" width="40" height="40" />
+        <span class="font-semibold">Monselatte Coffee Bar</span>
+      </a>
+      <a href="/" class="text-sm text-brand-green hover:underline">← Volver al sitio</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="py-10 lg:py-16">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="font-serif text-3xl sm:text-4xl text-brand-green">Solicita tu cotización</h1>
+        <p class="mt-2 text-brand-text/80">Completa el formulario y te respondemos en 24–48 h. Puedes elegir WhatsApp o Email.</p>
+
+        <!-- FORM -->
+        <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="hidden"><label for="website" class="sr-only">No completar</label><input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true"></div>
+          <div id="errors"
+               class="sm:col-span-2 text-sm text-red-700 hidden"
+               role="status"
+               aria-live="polite"></div>
+
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Nombre y Apellidos*</label><input required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Email*</label><input required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Teléfono/WhatsApp*</label><input required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\-\s]{7,}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Fecha del evento*</label><input required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Horario de inicio del servicio*</label><input required name="hora" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
+            <select required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="" disabled selected>Selecciona un municipio</option>
+              <option>Bayamón</option><option>San Juan</option><option>Carolina</option><option>Caguas</option><option>Toa Baja</option><option>Guaynabo</option><option>Trujillo Alto</option><option>Dorado</option><option>Vega Baja</option><option>Río Grande</option><option>Humacao</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2"><label class="block text-sm font-medium">Dirección del evento*</label><input required name="direccion" type="text" placeholder="Calle, #, urbanización/venue y referencias" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /><p class="mt-1 text-xs text-brand-text/60">Incluye calle, número, urbanización o nombre del venue y referencias de acceso.</p></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Tipo de evento*</label><select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Boda">Boda</option><option value="Corporativo">Corporativo</option><option value="Cumpleaños">Cumpleaños</option><option value="Otro">Otro</option></select></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Cantidad de invitados*</label><input required name="invitados" type="number" min="1" max="500" step="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Paquete de interés</label><select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Básico">Básico</option><option value="Experiencia Monselatte">Experiencia Monselatte</option><option value="Premium">Premium</option><option value="Por definir">Por definir</option></select></div>
+          <div class="sm:col-span-2"><label class="block text-sm font-medium">Mensaje (opcional)</label><textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea></div>
+          <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización.</p>
+          <div class="sm:col-span-2 flex flex-wrap gap-3"><button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg transition">Enviar por WhatsApp</button><button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 transition">Enviar por Email</button></div>
+          <div id="formMsg" class="sm:col-span-2 text-sm text-emerald-700 mt-2 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío.</div>
+          <div id="saveHint" class="sm:col-span-2 text-sm text-brand-text/60 mt-1 hidden">Datos registrados.</div>
+        </form>
+
+        <p class="mt-6 text-xs text-brand-text/60">¿Prefieres ver paquetes antes? <a href="/#paquetes" class="text-brand-green underline">Click aquí</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <script defer src="main.js"></script>
+</body>
+</html>

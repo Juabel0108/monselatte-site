@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ====== Utilidades base ====== */
+html { scroll-behavior: smooth; }
+.elevated { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+.text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.45); }
+.text-shadow-strong { text-shadow: 0 4px 16px rgba(0,0,0,.65); }
+.nav-link-active { text-decoration: underline; text-underline-offset: 6px; }
+
+/* ====== Reveal on scroll ====== */
+.reveal{ opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; will-change: opacity, transform; }
+.reveal-visible{ opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce){ .reveal{ opacity: 1; transform: none; } }
+
+/* ====== Lightbox base ====== */
+.lb-hidden { opacity: 0; transform: scale(.98); pointer-events: none; }
+.lb-visible { opacity: 1; transform: none; pointer-events: auto; }
+.lb-transition { transition: opacity .2s ease, transform .2s ease; }
+
+/* ====== Lightbox animations ====== */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes lbFadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes lbFadeOut { from { opacity: 1 } to { opacity: 0 } }
+
+  @keyframes lbZoomIn { from { opacity: 0; transform: translate(-50%, -48%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  @keyframes lbZoomOut { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -48%) scale(.96); } }
+
+  @keyframes lbCaptionIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @keyframes lbCaptionOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 8px); } }
+
+  .lb-backdrop-in { animation: lbFadeIn .22s ease both; }
+  .lb-backdrop-out { animation: lbFadeOut .18s ease both; }
+
+  .lb-img-in { animation: lbZoomIn .26s cubic-bezier(.22,.61,.36,1) both; }
+  .lb-img-out { animation: lbZoomOut .18s ease both; }
+
+  .lb-caption-in { animation: lbCaptionIn .24s ease .06s both; }
+  .lb-caption-out { animation: lbCaptionOut .16s ease both; }
+}
+
+/* ====== FAQ accordion ====== */
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, opacity .3s ease; opacity: 0; }
+.faq-item.is-open .faq-a { opacity: 1; }
+.faq-a-inner { border-top: 1px solid rgba(0,0,0,.06); }
+.faq-q:focus-visible { outline: 2px solid #0B3D2E; outline-offset: 2px; }
+.faq-item .faq-chevron { transform: rotate(0deg); transition: transform .25s ease; }
+.faq-item.is-open .faq-chevron { transform: rotate(180deg); }
+
+/* ====== Logo badge (footer) ====== */
+.logo-badge {
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ====== FAQ section background (sutil) ====== */
+.faq-section{
+  background-image:
+    radial-gradient(20px 20px at 20px 20px, rgba(0,0,0,.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ====== Contact buttons ====== */
+.contact-btn{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.6rem .9rem; border-radius:.75rem;
+  font-weight:600; border:1px solid rgba(0,0,0,.08);
+  background:#fff; color:#0B3D2E;
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.contact-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+.contact-btn__icon{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:1.75rem; width:1.75rem; border-radius:.5rem;
+  background:rgba(11,61,46,.08);
+}
+.contact-btn--wa{ border-color: rgba(37,211,102,.25); }
+.contact-btn--wa .contact-btn__icon{ background:rgba(37,211,102,.14); color:#128C7E; }
+.contact-btn--mail .contact-btn__icon{ background:rgba(0,0,0,.08); }
+.contact-btn--tel .contact-btn__icon{ background:rgba(0,0,0,.08); }
+
+/* ====== Social pills ====== */
+.social-pill{
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.35rem .6rem; border-radius:9999px;
+  border:1px solid rgba(0,0,0,.08); background:#fff; color:#0B3D2E;
+  font-size:.85rem;
+}
+.social-pill:hover{ border-color: rgba(11,61,46,.25); }
+
+/* ====== Content-visibility to reduce main-thread work ====== */
+.cv{
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
+}
+@media (min-width: 768px){
+  .cv{ contain-intrinsic-size: 1100px; }
+}
