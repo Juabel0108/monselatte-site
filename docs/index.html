@@ -29,25 +29,30 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": "CafeOrCoffeeShop",
+    "@id": "https://monselatte.com#business",
     "name": "Monselatte Coffee Bar",
     "image": "https://monselatte.com/assets/img/logo-oficial.png",
     "logo":  "https://monselatte.com/assets/img/logo-oficial.png",
     "url": "https://monselatte.com/",
     "telephone": "+1-787-610-8953",
     "priceRange": "$$",
+    "servesCuisine": "Coffee",
     "areaServed": "Puerto Rico",
+    "serviceArea": { "@type": "AdministrativeArea", "name": "Puerto Rico" },
     "address": { "@type": "PostalAddress", "addressCountry": "PR" },
     "sameAs": [
       "https://instagram.com/cafemonselatte",
       "https://facebook.com/cafemonselatte"
-    ]
+    ],
+    "parentOrganization": { "@id": "https://monselatte.com#organization" }
   }
   </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://monselatte.com#organization",
     "name": "Monselatte Coffee Bar",
     "url": "https://monselatte.com/",
     "logo": {
@@ -73,8 +78,10 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://monselatte.com#website",
     "url": "https://monselatte.com/",
     "name": "Monselatte Coffee Bar",
+    "publisher": { "@id": "https://monselatte.com#organization" },
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://www.google.com/search?q=site%3Amonselatte.com+{search_term_string}",
@@ -88,11 +95,37 @@
     "@type": "FAQPage",
     "mainEntity": [
       {"@type": "Question","name": "¿Con cuánta anticipación debo reservar?","acceptedAnswer": {"@type": "Answer","text": "Recomendamos reservar con 4–8 semanas; fechas pico conviene asegurar cuanto antes. Consultar disponibilidad de última hora es posible."}},
-      {"@type": "Question","name": "¿Qué incluye cada paquete?","acceptedAnswer": {"@type": "Answer","text": "Todos incluyen barista(s), equipo, insumos y vasos. Básico: espresso, americano, latte + 1 leche. Experiencia Monselatte: menú completo y leches alternas. Premium: personalización (stickers, QR y menú con branding)."}},
+      {"@type": "Question","name": "¿Qué incluye cada paquete?","acceptedAnswer": {"@type": "Answer","text": "Todos incluyen barista(s), equipo profesional, insumos y vasos. <em>Básico</em>: espresso, americano, latte + 1 leche. <em>Experiencia Monselatte</em>: menú completo y leches alternas."}},
       {"@type": "Question","name": "¿Cobertura y cargos por distancia?","acceptedAnswer": {"@type": "Answer","text": "Servimos toda Puerto Rico. Puede aplicar cargo de viaje según distancia y accesibilidad; se confirma en la cotización."}},
       {"@type": "Question","name": "¿Necesitan electricidad o agua?","acceptedAnswer": {"@type": "Answer","text": "Requerimos toma eléctrica dedicada (110V) a menos de 15–20 pies. Llevamos nuestro propio agua y filtros. Para exteriores, coordinamos ubicación segura."}},
       {"@type": "Question","name": "¿Tiempo de montaje y desmontaje?","acceptedAnswer": {"@type": "Answer","text": "Montaje: 45–60 min. Desmontaje: 30–45 min. Llegamos con tiempo para iniciar puntuales."}},
       {"@type": "Question","name": "¿Métodos de pago y depósito?","acceptedAnswer": {"@type": "Answer","text": "PayPal Business y ATH Móvil. Se solicita depósito para asegurar la fecha. Políticas de cambios y reembolsos se envían junto a la cotización."}}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "OfferCatalog",
+    "name": "Paquetes Monselatte",
+    "url": "https://monselatte.com/#paquetes",
+    "provider": { "@id": "https://monselatte.com#organization" },
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "name": "Básico",
+        "description": "2 horas · Espresso, cortado, americano y latte con 1 tipo de leche. Ideal para eventos íntimos.",
+        "itemOffered": { "@type": "Service", "serviceType": "Coffee catering para eventos" },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "Experiencia Monselatte",
+        "description": "Menú completo: mocha, chocolate y chai latte. Incluye leches alternas (p. ej., avena).",
+        "itemOffered": { "@type": "Service", "serviceType": "Coffee catering para eventos" },
+        "availability": "https://schema.org/InStock"
+      }
     ]
   }
   </script>
@@ -232,7 +265,7 @@
           <p class="mt-3 text-brand-text/80 reveal">Elige la opción que mejor se ajuste a tu evento. Podemos ajustar detalles según tu necesidad.</p>
         </div>
 
-        <div class="mt-10 grid gap-6 sm:gap-8 md:grid-cols-3">
+        <div class="mt-10 grid gap-6 sm:gap-8 md:grid-cols-2">
           <!-- Básico -->
           <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col ring-1 ring-transparent hover:ring-brand-green/40 group transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl reveal">
             <h3 class="font-serif text-2xl text-brand-green">Básico</h3>
@@ -258,16 +291,6 @@
             </div>
           </article>
 
-          <!-- Premium -->
-          <article class="rounded-2xl bg-white p-6 shadow-soft border border-black/5 flex flex-col ring-1 ring-transparent hover:ring-brand-green/40 group transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl reveal">
-            <div class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-brand-gold">Premium</div>
-            <h3 class="mt-1 font-serif text-2xl text-brand-green">Experiencia Premium</h3>
-            <p class="mt-3">Todo lo anterior + <strong>stickers</strong> del evento, <strong>QR</strong> con mini web del evento y <strong>menú con branding</strong>.</p>
-            <p class="mt-2 text-brand-text/80">Ideal para bodas y corporativos con foco en detalle.</p>
-            <div class="mt-6 pt-6 border-t border-black/10">
-              <a href="#reserva" class="inline-flex items-center px-4 py-2 rounded-md bg-brand-green text-white w-max shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Diseña tu Premium</a>
-            </div>
-          </article>
         </div>
       </div>
     </section>
@@ -416,7 +439,7 @@
           </blockquote>
           <blockquote class="relative bg-white p-6 rounded-2xl shadow-soft border border-black/5 h-full transition hover:shadow-lg reveal">
             <span aria-hidden="true" class="absolute -top-3 left-6 text-3xl text-brand-green/30 font-serif">“</span>
-            <p>“El paquete Premium elevó la experiencia; todo alineado a la temática del evento.”</p>
+            <p>“La personalización elevó la experiencia; todo alineado a la temática del evento.”</p>
             <footer class="mt-4 text-sm text-brand-text/70">— Alanis, evento privado</footer>
           </blockquote>
         </div>

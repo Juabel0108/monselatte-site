@@ -79,7 +79,6 @@ async function saveToSheet(formData){
     fetch(SHEET_WEBAPP_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
   } catch (err) {
@@ -91,10 +90,51 @@ async function saveToSheet(formData){
 function normalizePhone(value){
   return (value || '').replace(/[^0-9]/g, '');
 }
+
+/** ===== Accesibilidad de errores por campo ===== */
+function getFieldEl(form, name) {
+  return form?.querySelector(`[name="${name}"]`);
+}
+function clearAllFieldErrors(form){
+  if (!form) return;
+  form.querySelectorAll('.field-error').forEach(el => el.remove());
+  form.querySelectorAll('[aria-invalid="true"]').forEach(el => {
+    el.removeAttribute('aria-invalid');
+    const describedBy = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+    const filtered = describedBy.filter(id => !id.startsWith('err-'));
+    if (filtered.length) el.setAttribute('aria-describedby', filtered.join(' '));
+    else el.removeAttribute('aria-describedby');
+  });
+}
+function setFieldError(form, name, message){
+  const el = getFieldEl(form, name);
+  if (!el) return;
+  el.setAttribute('aria-invalid', 'true');
+
+  const id = `err-${name}`;
+  let msgEl = form.querySelector(`#${id}`);
+  if (!msgEl) {
+    msgEl = document.createElement('p');
+    msgEl.id = id;
+    msgEl.className = 'field-error mt-1 text-xs text-red-700';
+    if (el.insertAdjacentElement) el.insertAdjacentElement('afterend', msgEl);
+    else if (el.parentElement) el.parentElement.appendChild(msgEl);
+  }
+  msgEl.textContent = message;
+
+  const current = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+  if (!current.includes(id)) current.push(id);
+  el.setAttribute('aria-describedby', current.join(' '));
+}
+
 function showErrors(messages){
   const box = document.getElementById('errors');
   if(!box) return;
-  if(!messages.length){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  if(!messages.length){
+    box.classList.add('hidden');
+    box.innerHTML='';
+    return;
+  }
   box.classList.remove('hidden');
   box.innerHTML = '<ul class="list-disc pl-5">' + messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
 }
@@ -102,8 +142,17 @@ function todayISO(){ const d=new Date(); d.setHours(0,0,0,0); return d.toISOStri
 function validateForm(form){
   const data = new FormData(form);
   const errors = [];
+  const fieldErrs = []; // {name, message}
+
+  // limpiar errores previos por campo
+  clearAllFieldErrors(form);
+
   const hp = (data.get('website') || '').trim();
-  if(hp){ console.warn('Honeypot activado; bloqueo de envío.'); return { ok:false, spam:true, data }; }
+  if(hp){
+    console.warn('Honeypot activado; bloqueo de envío.');
+    return { ok:false, spam:true, data };
+  }
+
   const nombre=(data.get('nombre')||'').trim();
   const email=(data.get('email')||'').trim();
   const telRaw=(data.get('telefono')||'').trim();
@@ -117,18 +166,48 @@ function validateForm(form){
   const reNombre=/^[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}$/;
   const reEmail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-  if(!reNombre.test(nombre)) errors.push('Nombre: usa solo letras y espacios (2–60).');
-  if(!reEmail.test(email)) errors.push('Email: formato inválido.');
-  if(tel.length < 7 || tel.length > 15) errors.push('Teléfono: 7–15 dígitos.');
-  if(!fecha) errors.push('Selecciona la fecha del evento.');
-  if(!hora) errors.push('Selecciona el horario de inicio.');
-  if(fecha && fecha < todayISO()) errors.push('La fecha no puede estar en el pasado.');
-  if(!loc) errors.push('Selecciona el municipio.');
-  if(!direccion || direccion.length < 8) errors.push('Dirección: escribe una dirección más detallada (mínimo 8 caracteres).');
-  if(!(invitados >= 1 && invitados <= 500)) errors.push('Invitados: debe ser entre 1 y 500.');
+  if(!reNombre.test(nombre)){ errors.push('Nombre: usa solo letras y espacios (2–60).'); fieldErrs.push({name:'nombre', message:'Usa solo letras y espacios (2–60).'}); }
+  if(!reEmail.test(email)){ errors.push('Email: formato inválido.'); fieldErrs.push({name:'email', message:'Escribe un email válido.'}); }
+  if(tel.length < 7 || tel.length > 15){ errors.push('Teléfono: 7–15 dígitos.'); fieldErrs.push({name:'telefono', message:'El teléfono debe tener entre 7 y 15 dígitos.'}); }
+  if(!fecha){ errors.push('Selecciona la fecha del evento.'); fieldErrs.push({name:'fecha', message:'Selecciona la fecha.'}); }
+  if(!hora){ errors.push('Selecciona el horario de inicio.'); fieldErrs.push({name:'hora', message:'Selecciona la hora de inicio.'}); }
+  if(fecha && fecha < todayISO()){ errors.push('La fecha no puede estar en el pasado.'); fieldErrs.push({name:'fecha', message:'Elige una fecha futura.'}); }
+  if(!loc){ errors.push('Selecciona el municipio.'); fieldErrs.push({name:'localidad', message:'Selecciona un municipio.'}); }
+  if(!direccion || direccion.length < 8){ errors.push('Dirección: escribe una dirección más detallada (mínimo 8 caracteres).'); fieldErrs.push({name:'direccion', message:'Escribe una dirección más detallada (≥ 8 caracteres).'}); }
+  if(!(invitados >= 1 && invitados <= 500)){ errors.push('Invitados: debe ser entre 1 y 500.'); fieldErrs.push({name:'invitados', message:'Debe estar entre 1 y 500.'}); }
 
+  // Validación para tipo de evento y tipo_otro
+  const tipo = (data.get('tipo') || '').trim();
+  const tipo_otro = (data.get('tipo_otro') || '').trim();
+  if (!tipo) {
+    errors.push('Selecciona un tipo de evento.');
+    fieldErrs.push({ name: 'tipo', message: 'Selecciona un tipo de evento.' });
+  }
+  if (tipo === 'Otro' && !tipo_otro) {
+    errors.push('Especifica el tipo de evento.');
+    fieldErrs.push({ name: 'tipo_otro', message: 'Especifica el tipo de evento.' });
+  }
+
+  // Normalizar teléfono en el payload
   data.set('telefono', tel);
+
+  // Pintar errores por campo
+  fieldErrs.forEach(fe => setFieldError(form, fe.name, fe.message));
+
+  // Mostrar bloque de errores general
   showErrors(errors);
+
+  // Enfocar el primer campo inválido
+  if (fieldErrs.length){
+    const first = getFieldEl(form, fieldErrs[0].name);
+    if (first && typeof first.focus === 'function'){
+      first.focus();
+      if (typeof first.scrollIntoView === 'function'){
+        first.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    }
+  }
+
   return { ok: errors.length === 0, spam:false, data };
 }
 
@@ -177,7 +256,7 @@ function buildMessage(formData){
          `Hora de inicio: ${formData.get('hora')}\n` +
          `Localidad: ${formData.get('localidad')}\n` +
          `Dirección: ${formData.get('direccion')}\n` +
-         `Tipo de evento: ${formData.get('tipo')}\n` +
+         `Tipo de evento: ${formData.get('tipo') === 'Otro' ? formData.get('tipo_otro') : formData.get('tipo')}\n` +
          `Invitados: ${formData.get('invitados')}\n` +
          `Paquete: ${formData.get('paquete')}\n` +
          `Mensaje: ${formData.get('mensaje') || '—'}`;
@@ -459,3 +538,17 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
     }
   });
 })();
+// Mostrar/ocultar input "Otro" en tipo de evento
+document.addEventListener('DOMContentLoaded', () => {
+  const tipoSel = document.querySelector('select[name="tipo"]');
+  const otroWrap = document.getElementById('tipoOtroWrap');
+  if (tipoSel && otroWrap) {
+    tipoSel.addEventListener('change', () => {
+      if (tipoSel.value === 'Otro') {
+        otroWrap.classList.remove('hidden');
+      } else {
+        otroWrap.classList.add('hidden');
+      }
+    });
+  }
+});

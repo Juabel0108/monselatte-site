@@ -25,6 +25,39 @@
   <link rel="stylesheet" href="assets/tw.css">
   <link rel="stylesheet" href="styles.css">
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://monselatte.com/cotiza#webpage",
+    "name": "Solicita tu cotización",
+    "url": "https://monselatte.com/cotiza",
+    "isPartOf": { "@id": "https://monselatte.com#website" },
+    "about": { "@id": "https://monselatte.com#business" },
+    "breadcrumb": { "@id": "https://monselatte.com/cotiza#breadcrumb" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": "https://monselatte.com/cotiza#breadcrumb",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://monselatte.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Cotiza",
+        "item": "https://monselatte.com/cotiza"
+      }
+    ]
+  }
+  </script>
   <!-- GA4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-MGKWJKDS2L"></script>
   <script>
@@ -71,9 +104,23 @@
             </select>
           </div>
           <div class="sm:col-span-2"><label class="block text-sm font-medium">Dirección del evento*</label><input required name="direccion" type="text" placeholder="Calle, #, urbanización/venue y referencias" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /><p class="mt-1 text-xs text-brand-text/60">Incluye calle, número, urbanización o nombre del venue y referencias de acceso.</p></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Tipo de evento*</label><select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Boda">Boda</option><option value="Corporativo">Corporativo</option><option value="Cumpleaños">Cumpleaños</option><option value="Otro">Otro</option></select></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Tipo de evento*</label>
+            <select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="" disabled selected>Selecciona un tipo de evento</option>
+              <option value="Boda">Boda</option>
+              <option value="Baby shower">Baby shower</option>
+              <option value="Cumpleaños">Cumpleaños</option>
+              <option value="Aniversario">Aniversario</option>
+              <option value="Corporativo">Corporativo</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <div id="tipoOtroWrap" class="mt-2 hidden">
+              <label for="tipo_otro" class="block text-sm font-medium">Especifica el tipo de evento</label>
+              <input type="text" id="tipo_otro" name="tipo_otro" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Describe el evento" />
+            </div>
+          </div>
           <div class="sm:col-span-1"><label class="block text-sm font-medium">Cantidad de invitados*</label><input required name="invitados" type="number" min="1" max="500" step="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Paquete de interés</label><select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Básico">Básico</option><option value="Experiencia Monselatte">Experiencia Monselatte</option><option value="Premium">Premium</option><option value="Por definir">Por definir</option></select></div>
+          <div class="sm:col-span-1"><label class="block text-sm font-medium">Paquete de interés</label><select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Básico">Básico</option><option value="Experiencia Monselatte">Experiencia Monselatte</option><option value="Por definir">Por definir</option></select></div>
           <div class="sm:col-span-2"><label class="block text-sm font-medium">Mensaje (opcional)</label><textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea></div>
           <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización.</p>
           <div class="sm:col-span-2 flex flex-wrap gap-3"><button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg transition">Enviar por WhatsApp</button><button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 transition">Enviar por Email</button></div>
