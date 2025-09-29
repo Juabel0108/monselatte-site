@@ -241,7 +241,7 @@
             <li>• <strong>Calibración y consistencia</strong>: extracción ajustada para sacar lo mejor de cada grano.</li>
             <li>• <strong>Menú para todos</strong>: leches alternas y sabores de temporada.</li>
             <li>• <strong>Presentación impecable</strong>: barra ordenada, menús claros y estética elegante.</li>
-            <li>• <strong>Experiencia personalizada</strong>: stickers, QR del evento y menú con branding.</li>
+            <li>• <strong>Coordinación sin estrés</strong>: trabajamos con itinerarios y llegamos con tiempo.</li>
           </ul>
         </div>
         <div>
@@ -429,18 +429,18 @@
         <div class="mt-8 grid gap-6 md:grid-cols-3 items-stretch">
           <blockquote class="relative bg-white p-6 rounded-2xl shadow-soft border border-black/5 h-full transition hover:shadow-lg reveal">
             <span aria-hidden="true" class="absolute -top-3 left-6 text-3xl text-brand-green/30 font-serif">“</span>
-            <p>“Nuestros invitados no pararon de hablar del café. Montaje impecable y trato excelente.”</p>
-            <footer class="mt-4 text-sm text-brand-text/70">— Daniela &amp; Jorge, boda</footer>
+            <p>“Llegaron con tiempo, set-up impecable y servicio bien ágil. Producción fluyó sin estrés.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— Melissa V., coordinación corporativa</footer>
           </blockquote>
           <blockquote class="relative bg-white p-6 rounded-2xl shadow-soft border border-black/5 h-full transition hover:shadow-lg reveal">
             <span aria-hidden="true" class="absolute -top-3 left-6 text-3xl text-brand-green/30 font-serif">“</span>
-            <p>“Llegaron a tiempo, servicio ágil y bebidas de calidad. Perfecto para nuestro evento corporativo.”</p>
-            <footer class="mt-4 text-sm text-brand-text/70">— Melissa, Marketing</footer>
+            <p>“Los invitados siguieron volviendo por más. El chocolate caliente fue el hit del cumpleaños.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— Alanis T., cumpleaños</footer>
           </blockquote>
           <blockquote class="relative bg-white p-6 rounded-2xl shadow-soft border border-black/5 h-full transition hover:shadow-lg reveal">
             <span aria-hidden="true" class="absolute -top-3 left-6 text-3xl text-brand-green/30 font-serif">“</span>
-            <p>“La personalización elevó la experiencia; todo alineado a la temática del evento.”</p>
-            <footer class="mt-4 text-sm text-brand-text/70">— Alanis, evento privado</footer>
+            <p>“El aroma del café llenó el venue; la barra se volvió punto de encuentro.”</p>
+            <footer class="mt-4 text-sm text-brand-text/70">— Rafa C., boda</footer>
           </blockquote>
         </div>
       </div>
@@ -577,11 +577,18 @@
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Tipo de evento*</label>
             <select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+              <option value="" disabled selected>Selecciona un tipo de evento</option>
               <option value="Boda">Boda</option>
-              <option value="Corporativo">Corporativo</option>
+              <option value="Baby shower">Baby shower</option>
               <option value="Cumpleaños">Cumpleaños</option>
+              <option value="Aniversario">Aniversario</option>
+              <option value="Corporativo">Corporativo</option>
               <option value="Otro">Otro</option>
             </select>
+          </div>
+          <div id="tipoOtroWrap" class="sm:col-span-1 hidden">
+            <label for="tipo_otro" class="block text-sm font-medium">Especifica el tipo de evento</label>
+            <input type="text" id="tipo_otro" name="tipo_otro" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Describe el evento" />
           </div>
           <div class="sm:col-span-1">
             <label class="block text-sm font-medium">Cantidad de invitados*</label>
@@ -592,7 +599,6 @@
             <select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
               <option value="Básico">Básico</option>
               <option value="Experiencia Monselatte">Experiencia Monselatte</option>
-              <option value="Premium">Premium</option>
               <option value="Por definir">Por definir</option>
             </select>
           </div>
@@ -648,7 +654,7 @@
             </button>
             <div class="faq-a px-4 sm:px-6">
               <div class="faq-a-inner py-3 text-brand-text/80">
-                Todos incluyen barista(s), equipo profesional, insumos y vasos. <em>Básico</em>: espresso, americano, latte + 1 leche. <em>Experiencia Monselatte</em>: menú completo y leches alternas. <em>Premium</em>: personalización (stickers, QR y menú con branding).
+                Todos incluyen barista(s), equipo profesional, insumos y vasos. <em>Básico</em>: espresso, americano, latte + 1 leche. <em>Experiencia Monselatte</em>: menú completo y leches alternas.
               </div>
             </div>
           </article>
