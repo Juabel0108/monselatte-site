@@ -102,3 +102,44 @@ html { scroll-behavior: smooth; }
 @media (min-width: 768px){
   .cv{ contain-intrinsic-size: 1100px; }
 }
+
+/* ====== Hero editorial tweaks ====== */
+.heroA-tight { letter-spacing: -0.01em; }
+
+/* ====== Hero media + trust row ====== */
+.hero-media{
+  object-position: center 35%;
+}
+.hero-trust{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.5rem 1.25rem;
+  padding:0;
+  margin-left:0;
+  list-style:none;
+}
+@media (min-width: 640px){
+  .hero-trust{ gap:.6rem 1.5rem; }
+}
+
+
+/* ====== About media framing ====== */
+/* ====== About media framing (vertical) ====== */
+.about-media{
+  aspect-ratio: 4 / 5; /* vertical sin bordes */
+  background: transparent;
+}
+.about-media-img{
+  object-position: center 35%;
+}
+@media (min-width: 1024px){
+  .about-media{ aspect-ratio: 16 / 11; } /* en desktop se ve más balanceado */
+}
+
+
+
+#sobre {
+  background-color: var(--brand-cream);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}

@@ -10,7 +10,7 @@ menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
 const EMAIL_TO  = 'monselattepr@gmail.com';
-const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbzkfda9BR_FiaXCWIjdUSi2DH6evdxeF4OZufOkCmDZ1vDdzEZCxnPh2_xMYb4xhrvdtA/exec';
+const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbyKU6sIqY7tFibE4QTfbLBdaf_9Jqh5WB3u9C6QGjXspERVVUG5i1ASWlaJrsuGuzZs4Q/exec';
 
 // Header: sombra y fondo al hacer scroll
 (function(){
@@ -158,7 +158,9 @@ function validateForm(form){
   const telRaw=(data.get('telefono')||'').trim();
   const tel=normalizePhone(telRaw);
   const fecha=(data.get('fecha')||'').trim();
-  const hora=(data.get('hora')||'').trim();
+  const hora_inicio = (data.get('hora_inicio') || '').trim();
+  const horas_servicio = (data.get('horas_servicio') || '').trim();
+  const hora_fin = (data.get('hora_fin') || '').trim();
   const loc=(data.get('localidad')||'').trim();
   const direccion=(data.get('direccion')||'').trim();
   const invitados=parseInt(data.get('invitados')||'0',10);
@@ -170,7 +172,9 @@ function validateForm(form){
   if(!reEmail.test(email)){ errors.push('Email: formato inválido.'); fieldErrs.push({name:'email', message:'Escribe un email válido.'}); }
   if(tel.length < 7 || tel.length > 15){ errors.push('Teléfono: 7–15 dígitos.'); fieldErrs.push({name:'telefono', message:'El teléfono debe tener entre 7 y 15 dígitos.'}); }
   if(!fecha){ errors.push('Selecciona la fecha del evento.'); fieldErrs.push({name:'fecha', message:'Selecciona la fecha.'}); }
-  if(!hora){ errors.push('Selecciona el horario de inicio.'); fieldErrs.push({name:'hora', message:'Selecciona la hora de inicio.'}); }
+  if(!hora_inicio){ errors.push('Selecciona la hora de inicio.'); fieldErrs.push({name:'hora_inicio', message:'Selecciona la hora de inicio.'}); }
+  if(!horas_servicio){ errors.push('Selecciona la cantidad de horas.'); fieldErrs.push({name:'horas_servicio', message:'Selecciona la cantidad de horas.'}); }
+  if(!hora_fin){ errors.push('Selecciona la hora de fin.'); fieldErrs.push({name:'hora_fin', message:'Selecciona la hora de fin.'}); }
   if(fecha && fecha < todayISO()){ errors.push('La fecha no puede estar en el pasado.'); fieldErrs.push({name:'fecha', message:'Elige una fecha futura.'}); }
   if(!loc){ errors.push('Selecciona el municipio.'); fieldErrs.push({name:'localidad', message:'Selecciona un municipio.'}); }
   if(!direccion || direccion.length < 8){ errors.push('Dirección: escribe una dirección más detallada (mínimo 8 caracteres).'); fieldErrs.push({name:'direccion', message:'Escribe una dirección más detallada (≥ 8 caracteres).'}); }
@@ -188,8 +192,24 @@ function validateForm(form){
     fieldErrs.push({ name: 'tipo_otro', message: 'Especifica el tipo de evento.' });
   }
 
+  // Validar que fin > inicio (mismo día)
+  if (hora_inicio && hora_fin) {
+  const [sh, sm] = hora_inicio.split(':').map(Number);
+  const [eh, em] = hora_fin.split(':').map(Number);
+  const startMin = (sh * 60) + sm;
+  const endMin = (eh * 60) + em;
+  if (!(endMin > startMin)) {
+    errors.push('Horario: la hora de fin debe ser posterior a la hora de inicio.');
+    fieldErrs.push({name:'hora_fin', message:'La hora de fin debe ser posterior a la hora de inicio.'});
+  }
+}
+
   // Normalizar teléfono en el payload
   data.set('telefono', tel);
+
+  data.set('hora_inicio', hora_inicio);
+  data.set('horas_servicio', horas_servicio);
+  data.set('hora_fin', hora_fin);
 
   // Pintar errores por campo
   fieldErrs.forEach(fe => setFieldError(form, fe.name, fe.message));
@@ -229,22 +249,46 @@ function getUTM() {
   };
   return utm;
 }
-document.addEventListener('DOMContentLoaded', () => {
-  // Preseleccionar paquete via ?paquete=Básico|Experiencia%20Monselatte|Premium
-  const pkg = getSearchParams().get('paquete');
-  if (pkg) {
-    const sel = document.querySelector('select[name=\"paquete\"]');
-    if (sel) {
-      const options = Array.from(sel.options).map(o => o.value.toLowerCase());
-      const idx = options.indexOf(pkg.toLowerCase());
-      if (idx >= 0) sel.selectedIndex = idx;
-    }
-  }
-});
+
 // Fijar mínimo de fecha a hoy
 document.addEventListener('DOMContentLoaded', () => {
   const fechaInput = document.querySelector('input[name="fecha"]');
   if (fechaInput) fechaInput.min = todayISO();
+});
+
+// Auto-calcular hora de fin basado en inicio + horas
+document.addEventListener('DOMContentLoaded', () => {
+  const startEl = document.querySelector('input[name="hora_inicio"]');
+  const hoursEl = document.querySelector('select[name="horas_servicio"]');
+  const endEl   = document.querySelector('input[name="hora_fin"]');
+
+  if (!startEl || !hoursEl || !endEl) return;
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function toMinutes(hhmm){
+    const parts = (hhmm || '').split(':');
+    if (parts.length !== 2) return null;
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return (h * 60) + m;
+  }
+  function fromMinutes(total){
+    const mins = Math.max(0, Math.min(23*60+59, total));
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${pad(h)}:${pad(m)}`;
+  }
+
+  function recomputeEnd(){
+    const start = toMinutes(startEl.value);
+    const hrs = parseInt(hoursEl.value || '0', 10);
+    if (start == null || !(hrs > 0)) return;
+    endEl.value = fromMinutes(start + (hrs * 60));
+  }
+
+  startEl.addEventListener('change', recomputeEnd);
+  hoursEl.addEventListener('change', recomputeEnd);
 });
 
 function buildMessage(formData){
@@ -253,12 +297,13 @@ function buildMessage(formData){
          `Email: ${formData.get('email')}\n` +
          `Teléfono: ${formData.get('telefono')}\n` +
          `Fecha: ${formData.get('fecha')}\n` +
-         `Hora de inicio: ${formData.get('hora')}\n` +
+         `Hora de inicio: ${formData.get('hora_inicio')}\n` +
+          `Horas de servicio: ${formData.get('horas_servicio')}\n` +
+          `Hora de fin: ${formData.get('hora_fin')}\n` +
          `Localidad: ${formData.get('localidad')}\n` +
          `Dirección: ${formData.get('direccion')}\n` +
          `Tipo de evento: ${formData.get('tipo') === 'Otro' ? formData.get('tipo_otro') : formData.get('tipo')}\n` +
          `Invitados: ${formData.get('invitados')}\n` +
-         `Paquete: ${formData.get('paquete')}\n` +
          `Mensaje: ${formData.get('mensaje') || '—'}`;
 }
 
@@ -508,10 +553,11 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
         form_channel: 'email', // se sobrescribe abajo
         municipio: (fd.get('localidad') || '').toString(),
         event_type: (fd.get('tipo') || '').toString(),
-        package: (fd.get('paquete') || '').toString(),
         guests: parseInt(fd.get('invitados') || '0', 10) || 0,
         event_date: (fd.get('fecha') || '').toString(),
-        event_time: (fd.get('hora') || '').toString(),
+        start_time: (fd.get('hora_inicio') || '').toString(),
+        service_hours: parseInt(fd.get('horas_servicio') || '0', 10) || 0,
+        end_time: (fd.get('hora_fin') || '').toString(),
       };
     }
 
