@@ -86,7 +86,7 @@
 
         <!-- FORM -->
         <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="hidden"><label for="website" class="sr-only">No completar</label><input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true"></div>
+          <input type="hidden" id="horas_servicio" name="horas_servicio" value="" />
           <div id="errors"
                class="sm:col-span-2 text-sm text-red-700 hidden"
                role="status"
@@ -96,7 +96,25 @@
           <div class="sm:col-span-1"><label class="block text-sm font-medium">Email*</label><input required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
           <div class="sm:col-span-1"><label class="block text-sm font-medium">Teléfono/WhatsApp*</label><input required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\-\s]{7,}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
           <div class="sm:col-span-1"><label class="block text-sm font-medium">Fecha del evento*</label><input required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Horario de inicio del servicio*</label><input required name="hora" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Horario de inicio del servicio*</label>
+            <input
+              required
+              name="hora_inicio"
+              type="time"
+              class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"
+            />
+          </div>
+
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium">Horario de fin del servicio*</label>
+            <input
+              required
+              name="hora_fin"
+              type="time"
+              class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"
+            />
+          </div>
           <div class="sm:col-span-1"><label class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
             <select required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
               <option value="" disabled selected>Selecciona un municipio</option>

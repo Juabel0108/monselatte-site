@@ -13,3 +13,6 @@ Icon
 # Carpetas de sistema
 .Spotlight-V100
 .Trashes
+
+# archivo borrado 
+node_modules/

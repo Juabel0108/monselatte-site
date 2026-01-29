@@ -75,7 +75,17 @@ const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]'
 // Guardar en Google Sheets (background)
 async function saveToSheet(formData){
   try {
-    const payload = Object.fromEntries(formData.entries()); Object.assign(payload, getUTM());
+    const payload = Object.fromEntries(formData.entries());
+    Object.assign(payload, getUTM());
+
+    // Merge "Otro" + detail into a single field for backend / Sheets / emails
+    if ((payload.tipo || '').trim() === 'Otro') {
+      const det = (payload.tipo_otro || '').trim();
+      payload.tipo = det ? `Otro — ${det}` : 'Otro';
+    }
+    // No necesitamos enviar tipo_otro separado
+    delete payload.tipo_otro;
+
     fetch(SHEET_WEBAPP_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -139,6 +149,25 @@ function showErrors(messages){
   box.innerHTML = '<ul class="list-disc pl-5">' + messages.map(m => `<li>${m}</li>`).join('') + '</ul>';
 }
 function todayISO(){ const d=new Date(); d.setHours(0,0,0,0); return d.toISOString().split('T')[0]; }
+
+function computeServiceHours(horaInicio, horaFin){
+  // Returns integer hours (1–12) or null if invalid
+  if (!horaInicio || !horaFin) return null;
+  const [sh, sm] = String(horaInicio).split(':').map(Number);
+  const [eh, em] = String(horaFin).split(':').map(Number);
+  if ([sh, sm, eh, em].some(n => Number.isNaN(n))) return null;
+
+  const startMin = (sh * 60) + sm;
+  const endMin   = (eh * 60) + em;
+  const diffMin  = endMin - startMin;
+  if (diffMin <= 0) return null;
+
+  // Si escogen 1h30m, redondeamos hacia arriba a 2 horas
+  const hrs = Math.ceil(diffMin / 60);
+  if (hrs < 1 || hrs > 12) return null;
+  return hrs;
+}
+
 function validateForm(form){
   const data = new FormData(form);
   const errors = [];
@@ -159,9 +188,7 @@ function validateForm(form){
   const tel=normalizePhone(telRaw);
   const fecha=(data.get('fecha')||'').trim();
   const hora_inicio = (data.get('hora_inicio') || '').trim();
-  const horas_servicio = (data.get('horas_servicio') || '').trim();
-  const hora_fin = (data.get('hora_fin') || '').trim();
-  const loc=(data.get('localidad')||'').trim();
+  const hora_fin    = (data.get('hora_fin') || '').trim();  const loc=(data.get('localidad')||'').trim();
   const direccion=(data.get('direccion')||'').trim();
   const invitados=parseInt(data.get('invitados')||'0',10);
 
@@ -173,7 +200,6 @@ function validateForm(form){
   if(tel.length < 7 || tel.length > 15){ errors.push('Teléfono: 7–15 dígitos.'); fieldErrs.push({name:'telefono', message:'El teléfono debe tener entre 7 y 15 dígitos.'}); }
   if(!fecha){ errors.push('Selecciona la fecha del evento.'); fieldErrs.push({name:'fecha', message:'Selecciona la fecha.'}); }
   if(!hora_inicio){ errors.push('Selecciona la hora de inicio.'); fieldErrs.push({name:'hora_inicio', message:'Selecciona la hora de inicio.'}); }
-  if(!horas_servicio){ errors.push('Selecciona la cantidad de horas.'); fieldErrs.push({name:'horas_servicio', message:'Selecciona la cantidad de horas.'}); }
   if(!hora_fin){ errors.push('Selecciona la hora de fin.'); fieldErrs.push({name:'hora_fin', message:'Selecciona la hora de fin.'}); }
   if(fecha && fecha < todayISO()){ errors.push('La fecha no puede estar en el pasado.'); fieldErrs.push({name:'fecha', message:'Elige una fecha futura.'}); }
   if(!loc){ errors.push('Selecciona el municipio.'); fieldErrs.push({name:'localidad', message:'Selecciona un municipio.'}); }
@@ -192,24 +218,26 @@ function validateForm(form){
     fieldErrs.push({ name: 'tipo_otro', message: 'Especifica el tipo de evento.' });
   }
 
-  // Validar que fin > inicio (mismo día)
-  if (hora_inicio && hora_fin) {
-  const [sh, sm] = hora_inicio.split(':').map(Number);
-  const [eh, em] = hora_fin.split(':').map(Number);
-  const startMin = (sh * 60) + sm;
-  const endMin = (eh * 60) + em;
-  if (!(endMin > startMin)) {
-    errors.push('Horario: la hora de fin debe ser posterior a la hora de inicio.');
-    fieldErrs.push({name:'hora_fin', message:'La hora de fin debe ser posterior a la hora de inicio.'});
+ // Validar horario + calcular horas de servicio
+let computedHours = null;
+if (hora_inicio && hora_fin) {
+  computedHours = computeServiceHours(hora_inicio, hora_fin);
+  if (!computedHours) {
+    errors.push('Horario: la hora de fin debe ser posterior a la hora de inicio (máx. 12 horas).');
+    fieldErrs.push({ name:'hora_fin', message:'La hora de fin debe ser posterior al inicio (máx. 12 horas).' });
   }
+}
+
+// Guardar horas_servicio en el payload (hidden input)
+if (computedHours) {
+  data.set('horas_servicio', String(computedHours));
 }
 
   // Normalizar teléfono en el payload
   data.set('telefono', tel);
 
-  data.set('hora_inicio', hora_inicio);
-  data.set('horas_servicio', horas_servicio);
-  data.set('hora_fin', hora_fin);
+data.set('hora_inicio', hora_inicio);
+data.set('hora_fin', hora_fin);
 
   // Pintar errores por campo
   fieldErrs.forEach(fe => setFieldError(form, fe.name, fe.message));
@@ -256,53 +284,41 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fechaInput) fechaInput.min = todayISO();
 });
 
-// Auto-calcular hora de fin basado en inicio + horas
+// Auto-calcular horas_servicio (hidden) basado en inicio + fin
 document.addEventListener('DOMContentLoaded', () => {
   const startEl = document.querySelector('input[name="hora_inicio"]');
-  const hoursEl = document.querySelector('select[name="horas_servicio"]');
   const endEl   = document.querySelector('input[name="hora_fin"]');
+  const hrsEl   = document.querySelector('input[name="horas_servicio"]');
 
-  if (!startEl || !hoursEl || !endEl) return;
+  if (!startEl || !endEl || !hrsEl) return;
 
-  function pad(n){ return String(n).padStart(2,'0'); }
-  function toMinutes(hhmm){
-    const parts = (hhmm || '').split(':');
-    if (parts.length !== 2) return null;
-    const h = Number(parts[0]);
-    const m = Number(parts[1]);
-    if (Number.isNaN(h) || Number.isNaN(m)) return null;
-    return (h * 60) + m;
-  }
-  function fromMinutes(total){
-    const mins = Math.max(0, Math.min(23*60+59, total));
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return `${pad(h)}:${pad(m)}`;
+  function recomputeHours(){
+    const hrs = computeServiceHours(startEl.value, endEl.value);
+    hrsEl.value = hrs ? String(hrs) : '';
   }
 
-  function recomputeEnd(){
-    const start = toMinutes(startEl.value);
-    const hrs = parseInt(hoursEl.value || '0', 10);
-    if (start == null || !(hrs > 0)) return;
-    endEl.value = fromMinutes(start + (hrs * 60));
-  }
-
-  startEl.addEventListener('change', recomputeEnd);
-  hoursEl.addEventListener('change', recomputeEnd);
+  startEl.addEventListener('change', recomputeHours);
+  endEl.addEventListener('change', recomputeHours);
 });
 
 function buildMessage(formData){
+  const tipo = (formData.get('tipo') || '').toString().trim();
+  const tipoOtro = (formData.get('tipo_otro') || '').toString().trim();
+  const tipoFinal = (tipo === 'Otro')
+    ? (tipoOtro ? `Otro — ${tipoOtro}` : 'Otro')
+    : tipo;
+
   return `Hola Monselatte, quiero cotizar una barra de café.\n\n` +
          `Nombre: ${formData.get('nombre')}\n` +
          `Email: ${formData.get('email')}\n` +
          `Teléfono: ${formData.get('telefono')}\n` +
          `Fecha: ${formData.get('fecha')}\n` +
          `Hora de inicio: ${formData.get('hora_inicio')}\n` +
-          `Horas de servicio: ${formData.get('horas_servicio')}\n` +
-          `Hora de fin: ${formData.get('hora_fin')}\n` +
+         `Horas de servicio: ${formData.get('horas_servicio')}\n` +
+         `Hora de fin: ${formData.get('hora_fin')}\n` +
          `Localidad: ${formData.get('localidad')}\n` +
          `Dirección: ${formData.get('direccion')}\n` +
-         `Tipo de evento: ${formData.get('tipo') === 'Otro' ? formData.get('tipo_otro') : formData.get('tipo')}\n` +
+         `Tipo de evento: ${tipoFinal}\n` +
          `Invitados: ${formData.get('invitados')}\n` +
          `Mensaje: ${formData.get('mensaje') || '—'}`;
 }
