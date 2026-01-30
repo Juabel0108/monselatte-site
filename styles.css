@@ -143,3 +143,15 @@ html { scroll-behavior: smooth; }
   border-top: 1px solid rgba(0,0,0,0.05);
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
+
+/* ====== Gallery sizing ====== */
+/* Gallery thumbs previously enforced Tailwind's aspect ratio utility,
+   which kept height fluid; moving sizing here with a dedicated class
+   guarantees uniform cropping without fighting utility classes. */
+.gallery-thumb{
+  width:100%;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  border-radius:18px;
+  display:block;
+}
