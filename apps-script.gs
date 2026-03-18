@@ -826,7 +826,7 @@ function quoteTemplateHtml() {
       </div>
       <? } ?>
       <div class="muted" style="margin-top:8px">
-        <strong>Métodos de pago:</strong> Efectivo · ATH Móvil al <?= data.company.phone ?> · PayPal · Tarjetas de débito/crédito (≈3.99% por transacción)
+        <strong>Métodos de pago:</strong> Efectivo · ATH Móvil · Tarjetas de débito/crédito
       </div>
 
       <div class="muted" style="margin-top:12px">*Esta cotización es preliminar y está sujeta a confirmación de logística y distancia.</div>
