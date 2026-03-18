@@ -10,7 +10,7 @@ menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
 const EMAIL_TO  = 'monselattepr@gmail.com';
-const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbwucIOuyz199zYyUjKpyAidYI_ef7FmYLikhjhZYxwl15agCY8gfokHRa0yvgGmN2A/exec';
+const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbwuclOuyz199zYyU1jKpyAidYl_ef7FmYLikhjhZYxwI15agCY8gfokHRa0yvgGmN2A/exec';
 
 // Header: sombra y fondo al hacer scroll
 (function(){
