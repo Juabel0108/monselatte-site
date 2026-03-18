@@ -12,7 +12,8 @@
   <meta property="og:title" content="Solicita tu cotización | Monselatte Coffee Bar" />
   <meta property="og:description" content="Cuéntanos tu evento y recibe tu cotización por WhatsApp o email." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://monselatte.com/assets/img/logo-oficial.png" />
+  <meta property="og:image" content="https://monselatte.com/assets/img/hero-monselatte.jpeg" />
+  <meta property="og:url" content="https://monselatte.com/cotiza" />
   <link rel="canonical" href="https://monselatte.com/cotiza" />
 
   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/logo-oficial.png" />
@@ -87,18 +88,24 @@
         <!-- FORM -->
         <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input type="hidden" id="horas_servicio" name="horas_servicio" value="" />
+          <!-- Honeypot anti-spam (bots suelen llenarlo). Si tiene valor, NO enviamos -->
+          <div class="hidden">
+            <label for="website" class="sr-only">No completar</label>
+            <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true">
+          </div>
           <div id="errors"
                class="sm:col-span-2 text-sm text-red-700 hidden"
                role="status"
                aria-live="polite"></div>
 
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Nombre y Apellidos*</label><input required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Email*</label><input required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Teléfono/WhatsApp*</label><input required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\-\s]{7,}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Fecha del evento*</label><input required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label for="f-nombre" class="block text-sm font-medium">Nombre y Apellidos*</label><input id="f-nombre" required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label for="f-email" class="block text-sm font-medium">Email*</label><input id="f-email" required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label for="f-telefono" class="block text-sm font-medium">Teléfono/WhatsApp*</label><input id="f-telefono" required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\-\s]{7,}" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label for="f-fecha" class="block text-sm font-medium">Fecha del evento*</label><input id="f-fecha" required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
           <div class="sm:col-span-1">
-            <label class="block text-sm font-medium">Horario de inicio del servicio*</label>
+            <label for="f-hora-inicio" class="block text-sm font-medium">Horario de inicio del servicio*</label>
             <input
+              id="f-hora-inicio"
               required
               name="hora_inicio"
               type="time"
@@ -107,23 +114,100 @@
           </div>
 
           <div class="sm:col-span-1">
-            <label class="block text-sm font-medium">Horario de fin del servicio*</label>
+            <label for="f-hora-fin" class="block text-sm font-medium">Horario de fin del servicio*</label>
             <input
+              id="f-hora-fin"
               required
               name="hora_fin"
               type="time"
               class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"
             />
           </div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
-            <select required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+          <div class="sm:col-span-1"><label for="f-localidad" class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
+            <select id="f-localidad" required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
               <option value="" disabled selected>Selecciona un municipio</option>
-              <option>Bayamón</option><option>San Juan</option><option>Carolina</option><option>Caguas</option><option>Toa Baja</option><option>Guaynabo</option><option>Trujillo Alto</option><option>Dorado</option><option>Vega Baja</option><option>Río Grande</option><option>Humacao</option>
+              <option>Adjuntas</option>
+              <option>Aguada</option>
+              <option>Aguadilla</option>
+              <option>Aguas Buenas</option>
+              <option>Aibonito</option>
+              <option>Arecibo</option>
+              <option>Arroyo</option>
+              <option>Barceloneta</option>
+              <option>Barranquitas</option>
+              <option>Bayamón</option>
+              <option>Cabo Rojo</option>
+              <option>Caguas</option>
+              <option>Camuy</option>
+              <option>Canóvanas</option>
+              <option>Carolina</option>
+              <option>Cataño</option>
+              <option>Cayey</option>
+              <option>Ceiba</option>
+              <option>Ciales</option>
+              <option>Cidra</option>
+              <option>Coamo</option>
+              <option>Comerío</option>
+              <option>Corozal</option>
+              <option>Culebra</option>
+              <option>Dorado</option>
+              <option>Fajardo</option>
+              <option>Florida</option>
+              <option>Guánica</option>
+              <option>Guayama</option>
+              <option>Guayanilla</option>
+              <option>Guaynabo</option>
+              <option>Gurabo</option>
+              <option>Hatillo</option>
+              <option>Hormigueros</option>
+              <option>Humacao</option>
+              <option>Isabela</option>
+              <option>Jayuya</option>
+              <option>Juana Díaz</option>
+              <option>Juncos</option>
+              <option>Lajas</option>
+              <option>Lares</option>
+              <option>Las Marías</option>
+              <option>Las Piedras</option>
+              <option>Loíza</option>
+              <option>Luquillo</option>
+              <option>Manatí</option>
+              <option>Maricao</option>
+              <option>Maunabo</option>
+              <option>Mayagüez</option>
+              <option>Moca</option>
+              <option>Morovis</option>
+              <option>Naguabo</option>
+              <option>Naranjito</option>
+              <option>Orocovis</option>
+              <option>Patillas</option>
+              <option>Peñuelas</option>
+              <option>Ponce</option>
+              <option>Quebradillas</option>
+              <option>Rincón</option>
+              <option>Río Grande</option>
+              <option>Sabana Grande</option>
+              <option>Salinas</option>
+              <option>San Germán</option>
+              <option>San Juan</option>
+              <option>San Lorenzo</option>
+              <option>San Sebastián</option>
+              <option>Santa Isabel</option>
+              <option>Toa Alta</option>
+              <option>Toa Baja</option>
+              <option>Trujillo Alto</option>
+              <option>Utuado</option>
+              <option>Vega Alta</option>
+              <option>Vega Baja</option>
+              <option>Vieques</option>
+              <option>Villalba</option>
+              <option>Yabucoa</option>
+              <option>Yauco</option>
             </select>
           </div>
-          <div class="sm:col-span-2"><label class="block text-sm font-medium">Dirección del evento*</label><input required name="direccion" type="text" placeholder="Calle, #, urbanización/venue y referencias" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /><p class="mt-1 text-xs text-brand-text/60">Incluye calle, número, urbanización o nombre del venue y referencias de acceso.</p></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Tipo de evento*</label>
-            <select required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+          <div class="sm:col-span-2"><label for="f-direccion" class="block text-sm font-medium">Dirección del evento*</label><input id="f-direccion" required name="direccion" type="text" placeholder="Calle, #, urbanización/venue y referencias" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /><p class="mt-1 text-xs text-brand-text/60">Incluye calle, número, urbanización o nombre del venue y referencias de acceso.</p></div>
+          <div class="sm:col-span-1"><label for="f-tipo" class="block text-sm font-medium">Tipo de evento*</label>
+            <select id="f-tipo" required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
               <option value="" disabled selected>Selecciona un tipo de evento</option>
               <option value="Boda">Boda</option>
               <option value="Baby shower">Baby shower</option>
@@ -137,9 +221,9 @@
               <input type="text" id="tipo_otro" name="tipo_otro" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Describe el evento" />
             </div>
           </div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Cantidad de invitados*</label><input required name="invitados" type="number" min="1" max="500" step="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-          <div class="sm:col-span-1"><label class="block text-sm font-medium">Paquete de interés</label><select name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Básico">Básico</option><option value="Experiencia Monselatte">Experiencia Monselatte</option><option value="Por definir">Por definir</option></select></div>
-          <div class="sm:col-span-2"><label class="block text-sm font-medium">Mensaje (opcional)</label><textarea name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea></div>
+          <div class="sm:col-span-1"><label for="f-invitados" class="block text-sm font-medium">Cantidad de invitados*</label><input id="f-invitados" required name="invitados" type="number" min="1" max="500" step="1" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+          <div class="sm:col-span-1"><label for="f-paquete" class="block text-sm font-medium">Paquete de interés</label><select id="f-paquete" name="paquete" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green"><option value="Básico">Básico</option><option value="Experiencia Monselatte">Experiencia Monselatte</option><option value="Por definir">Por definir</option></select></div>
+          <div class="sm:col-span-2"><label for="f-mensaje" class="block text-sm font-medium">Mensaje (opcional)</label><textarea id="f-mensaje" name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea></div>
           <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización.</p>
           <div class="sm:col-span-2 flex flex-wrap gap-3"><button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg transition">Enviar por WhatsApp</button><button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 transition">Enviar por Email</button></div>
           <div id="formMsg" class="sm:col-span-2 text-sm text-emerald-700 mt-2 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío.</div>
