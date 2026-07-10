@@ -7,13 +7,30 @@
  ************************************************************/
 
 // ====== CONFIG ======
-const SPREADSHEET_ID = '1Y0Dcn9x26myWrG7b8E49Q1AyX7Nfg2fBKG_lElCX5uI';
+// ⚠️ Los IDs sensibles NO viven en este archivo (este repo es público en GitHub).
+// Se configuran UNA SOLA VEZ en el editor de Apps Script:
+//   Configuración del proyecto (⚙️) → Propiedades de la secuencia de comandos
+// Crea estas 5 propiedades con sus valores reales ANTES de desplegar esta versión:
+//   SPREADSHEET_ID     → ID del Google Sheet de leads
+//   LOGO_ID            → ID del archivo del logo en Drive
+//   QUOTES_FOLDER_ID   → ID de la carpeta /Cotizaciones en Drive
+//   TERMS_PDF_ID       → ID del PDF de términos y condiciones
+//   STRIPE_DEPOSIT_URL → link de pago del depósito (buy.stripe.com/...)
+function requireProp_(key) {
+  const v = PropertiesService.getScriptProperties().getProperty(key);
+  if (!v) throw new Error(
+    `Falta la Script Property "${key}". Configúrala en: ` +
+    `Configuración del proyecto → Propiedades de la secuencia de comandos.`
+  );
+  return v;
+}
+const SPREADSHEET_ID = requireProp_('SPREADSHEET_ID');
 const SHEET_NAME     = 'Leads';    // la hoja donde guardamos
 const SPAM_SHEET     = 'Spam';     // hoja para registros descartados
-const LOGO_ID = '1ujLjOOxvs-QWuU-OwtdXXbaoGmEa1BEQ';
+const LOGO_ID = requireProp_('LOGO_ID');
 // === PDF / Carpeta y Términos ===
-const QUOTES_FOLDER_ID = '1s56ccSMJ2UCXxTWxCj2PuLV29rZPhcsQ';
-const TERMS_PDF_ID     = '16gKZrQ2viHr3kP2QZPlsHsPomTavIAgY';
+const QUOTES_FOLDER_ID = requireProp_('QUOTES_FOLDER_ID');
+const TERMS_PDF_ID     = requireProp_('TERMS_PDF_ID');
 
 const ADMIN_EMAIL    = 'monselattepr@gmail.com';
 const COMPANY = {
@@ -27,7 +44,7 @@ const ATTACH_QUOTE_PDF = true; // si ves doble adjunto, ponlo en false para envi
 const INCLUDE_DRIVE_LINK = false; // enviar SOLO el PDF adjunto (sin link de Drive)
 
 const FIXED_DEPOSIT_AMOUNT = 100;
-const STRIPE_DEPOSIT_URL   = 'https://buy.stripe.com/6oU9AV4Zw5SLcMmbjp7ok00';
+const STRIPE_DEPOSIT_URL   = requireProp_('STRIPE_DEPOSIT_URL');
 const THANK_YOU_URL        = 'https://monselatte.com/gracias.html';
 
 /** Devuelve el logo como blob para inlineImages (cid:logo). Asegúrate de poner tu LOGO_ID. */
