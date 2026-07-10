@@ -72,7 +72,11 @@ const LEADS_HEADERS = [
   'referrer','page_path',
 
   // pdf workflow
-  'nro','pdfUrl','sent_at'
+  'nro','pdfUrl','sent_at',
+
+  // automatización (reconciliación Stripe, recordatorios, auto-pricing, calendar)
+  'estado','deposito_at','recordatorio_1','recordatorio_2',
+  'precio_sugerido','desglose','no_contactar','calendar_event_id'
 ];
 
 // ====== WEB APP ======
@@ -141,7 +145,9 @@ ss.appendRow([
   (data.utm_term    || ''), (data.utm_content || ''),
   (data.referrer    || ''), (data.page_path   || ''),
 
-  '', '', ''
+  '', '', '', // nro, pdfUrl, sent_at
+
+  'NUEVO', '', '', '', '', '', '', '' // estado + resto de columnas de automatización
 ]);
 
   // 6) Emails
@@ -228,6 +234,15 @@ function getOrCreateSheet(spreadsheetId, sheetName, headers) {
   const firstRow = sh.getRange(1,1,1, sh.getLastColumn() || headers.length).getValues()[0];
   if (!firstRow || firstRow.join('') === '') {
     sh.getRange(1,1,1,headers.length).setValues([headers]);
+  } else {
+    // Migración automática: si `headers` trae columnas que la hoja aún no tiene,
+    // se añaden al final de la fila 1 (asume que las existentes ya están en el
+    // mismo orden que LEADS_HEADERS, como hasta ahora).
+    const existing = firstRow.map(h => String(h).trim().toLowerCase());
+    const missing = headers.filter(h => existing.indexOf(String(h).toLowerCase()) < 0);
+    if (missing.length) {
+      sh.getRange(1, firstRow.length + 1, 1, missing.length).setValues([missing]);
+    }
   }
   return sh;
 }
@@ -896,9 +911,18 @@ function sendQuoteEmail(row, pdfFile, isUpdate) {
     pdfUrl = '';
   }
 
+  // Link de pago con identidad del lead: client_reference_id viaja hasta la
+  // Checkout Session de Stripe y permite matchear el pago con la columna `nro`
+  // del Sheet (reconciliación automática); prefilled_email prellena el checkout.
+  // Solo acepta alfanumérico/guiones/underscore (ML-YYMM-### cumple).
+  const stripeUrl = STRIPE_DEPOSIT_URL
+    + (STRIPE_DEPOSIT_URL.indexOf('?') >= 0 ? '&' : '?')
+    + 'client_reference_id=' + encodeURIComponent(row.nro || '')
+    + '&prefilled_email=' + encodeURIComponent(row.email || '');
+
   const stripeText = isInvoice
     ? ''
-    : `\n\nPara reservar tu fecha, se requiere un depósito fijo de $${FIXED_DEPOSIT_AMOUNT.toFixed(2)}.\nPuedes realizar el pago aquí:\n${STRIPE_DEPOSIT_URL}\n\nUna vez recibido el depósito, tu fecha quedará separada oficialmente.`;
+    : `\n\nPara reservar tu fecha, se requiere un depósito fijo de $${FIXED_DEPOSIT_AMOUNT.toFixed(2)}.\nPuedes realizar el pago aquí:\n${stripeUrl}\n\nUna vez recibido el depósito, tu fecha quedará separada oficialmente.`;
 
   const plain = `Hola ${row.nombre || ''},\n\nAdjuntamos tu ${isUpdate ? 'actualización de ' : ''}${docWordLower} ${row.nro || ''}.${stripeText}\n\nSi necesitas cambios, respóndenos por este medio.${pdfUrl ? '\n\nLink: ' + pdfUrl : ''}\n`;
 
@@ -918,7 +942,7 @@ function sendQuoteEmail(row, pdfFile, isUpdate) {
         <strong>$${FIXED_DEPOSIT_AMOUNT.toFixed(2)}</strong>.
         Una vez recibido, tu fecha queda reservada.
       </p>
-      <a href="${STRIPE_DEPOSIT_URL}"
+      <a href="${stripeUrl}"
          style="display:inline-block;background:#0B3D2E;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">
         Reservar fecha &mdash; Dep&oacute;sito de $${FIXED_DEPOSIT_AMOUNT.toFixed(2)}
       </a>
