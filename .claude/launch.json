@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "compare-css",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8123", "-d", "/private/tmp/claude-501/-Users-juabelmac-Desktop-monselatte-site/f54a8047-4608-4d03-ae35-0d29bb325433/scratchpad/compare"],
+      "port": 8123
+    }
+  ]
+}
