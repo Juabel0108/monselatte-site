@@ -43,7 +43,7 @@ npm run watch:css      # modo watch
 
 ## Apps Script — deploy (runbook)
 
-El backend se despliega a mano (copy-paste). La URL del deployment vive en el `<meta name="sheet-webapp-url">` de `index.html` y `cotiza.html` — `main.js` la lee de ahí.
+El backend se despliega a mano (copy-paste). La URL del deployment vive en el `<meta name="sheet-webapp-url">` de `index.html` — `main.js` la lee de ahí.
 
 1. Abrir el proyecto en [script.google.com](https://script.google.com) ("Monselatte Cotizaciones").
 2. Pegar el contenido de `apps-script.gs` en `Code.gs`.
@@ -76,7 +76,7 @@ Si falta alguna, el script falla al arrancar con un error que dice cuál.
 | Ruta | Qué es |
 |---|---|
 | `index.html` | Landing one-page (hero, sobre, paquetes, galería, testimonios, form `#reserva`, FAQ) |
-| `cotiza.html` | Página de formulario dedicada |
+| `cotiza.html` | Redirect a `/#reserva` (página retirada; canonical a `/`) |
 | `gracias.html` | Confirmación post-depósito (dispara GA4 `deposit_confirmed`) |
 | `main.js` | Validación/envío del form, WhatsApp/email, galería, reveal, GA4 |
 | `styles.css` | Input de Tailwind (no se sirve) |

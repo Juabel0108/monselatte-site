@@ -10,9 +10,9 @@ menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
 const EMAIL_TO  = 'monselattepr@gmail.com';
-// La URL del Apps Script vive en el <meta name="sheet-webapp-url"> de cada página
-// (index.html y cotiza.html). Al desplegar una nueva versión del Apps Script,
-// actualiza SOLO esos meta tags — este archivo no debería tocarse.
+// La URL del Apps Script vive en el <meta name="sheet-webapp-url"> de index.html.
+// Al desplegar una nueva versión del Apps Script, actualiza SOLO ese meta tag —
+// este archivo no debería tocarse.
 const SHEET_WEBAPP_URL = document.querySelector('meta[name="sheet-webapp-url"]')?.content
   // ⚠️ FALLBACK DE EMERGENCIA: solo se usa si una página olvidó incluir el meta tag.
   // Puede quedar desactualizado respecto al deployment real — no confiar en él.
