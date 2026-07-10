@@ -10,7 +10,16 @@ menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
 const EMAIL_TO  = 'monselattepr@gmail.com';
-const SHEET_WEBAPP_URL = (document.querySelector('meta[name="sheet-webapp-url"]')?.content) || 'https://script.google.com/macros/s/AKfycbwuclOuyz199zYyU1jKpyAidYl_ef7FmYLikhjhZYxwI15agCY8gfokHRa0yvgGmN2A/exec';
+// La URL del Apps Script vive en el <meta name="sheet-webapp-url"> de cada página
+// (index.html y cotiza.html). Al desplegar una nueva versión del Apps Script,
+// actualiza SOLO esos meta tags — este archivo no debería tocarse.
+const SHEET_WEBAPP_URL = document.querySelector('meta[name="sheet-webapp-url"]')?.content
+  // ⚠️ FALLBACK DE EMERGENCIA: solo se usa si una página olvidó incluir el meta tag.
+  // Puede quedar desactualizado respecto al deployment real — no confiar en él.
+  || 'https://script.google.com/macros/s/AKfycbwuclOuyz199zYyU1jKpyAidYl_ef7FmYLikhjhZYxwI15agCY8gfokHRa0yvgGmN2A/exec';
+if (!document.querySelector('meta[name="sheet-webapp-url"]')?.content) {
+  console.warn('sheet-webapp-url: falta el meta tag en esta página; usando fallback hardcodeado (puede estar desactualizado).');
+}
 
 // Header: sombra y fondo al hacer scroll
 (function(){
