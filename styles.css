@@ -164,3 +164,32 @@ html { scroll-behavior: smooth; }
 .wizard-step input[type="number"]::-webkit-outer-spin-button,
 .wizard-step input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .wizard-step input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+/* Menú editorial: materiales cálidos, tipografía de marca y controles sobrios. */
+.menu-included{
+  padding:1.25rem 1.35rem;
+  border:1px solid rgba(11,61,46,.16);
+  border-radius:4px;
+  background:linear-gradient(135deg, rgba(250,247,240,.95), rgba(11,61,46,.035));
+  box-shadow:inset 3px 0 0 #a77b28;
+}
+.menu-eyebrow{ margin-bottom:.25rem; color:#9a7125; font-size:.68rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.menu-addon{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:1.5rem;
+  margin-top:1rem; padding:1.15rem 1.25rem; border-bottom:1px solid rgba(11,61,46,.16);
+}
+.menu-addon__choices{ min-width:12rem; }
+.menu-choice{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  width:100%; min-height:3.25rem; padding:.75rem .9rem; border:1px solid rgba(11,61,46,.25);
+  border-radius:3px; background:#fff; color:#0b3d2e; font-size:.875rem; font-weight:700;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.menu-choice__mark{ display:grid; place-items:center; width:1.5rem; height:1.5rem; border:1px solid currentColor; border-radius:50%; font-size:1rem; line-height:1; }
+.menu-addon label:hover .menu-choice{ border-color:#a77b28; }
+.menu-addon input:checked + .menu-choice{ background:#0b3d2e; border-color:#0b3d2e; color:#fff; }
+.menu-addon input:checked + .menu-choice .menu-choice__mark{ background:#a77b28; border-color:#a77b28; }
+.menu-addon input:checked + .menu-choice .menu-choice__mark{ font-size:0; }
+.menu-addon input:checked + .menu-choice .menu-choice__mark::after{ content:'✓'; font-size:.85rem; }
+.menu-addon input:focus-visible + .menu-choice{ outline:2px solid #a77b28; outline-offset:3px; }
+@media (max-width:639px){ .menu-addon{ grid-template-columns:1fr; gap:.85rem; padding-inline:.25rem; } .menu-addon__choices{ min-width:0; } }

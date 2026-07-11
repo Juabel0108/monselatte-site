@@ -45,9 +45,15 @@ const MENU_INCLUDED = [
 const MENU_CATALOG = [
   {
     field: 'menu_frias',
-    label: 'Iced coffees',
-    note: 'Add-on con costo adicional.',
-    items: ['Iced latte', 'Iced americano']
+    label: 'Barra de bebidas frías',
+    note: 'Incluye el menú completo servido sobre hielo: iced latte, iced americano, iced chai y más.',
+    items: ['Añadir bebidas frías']
+  },
+  {
+    field: 'menu_matcha',
+    label: 'Matcha',
+    note: 'Añade matcha preparado al momento, caliente o frío.',
+    items: ['Añadir matcha']
   },
   {
     field: 'menu_licor',
@@ -292,16 +298,13 @@ const FIELD_VALIDATORS = {
     if (tipo === 'Otro' && !(d.get('tipo_otro')||'').trim()) return 'Especifica el tipo de evento.';
     return null;
   },
-  ambiente(d){
-    return (d.get('ambiente')||'').trim() ? null : 'Indícanos si el evento es al aire libre o interior.';
-  }
 };
 
 // Qué campos valida cada paso del wizard
 const STEP_FIELDS = {
   1: ['tipo', 'tipo_otro', 'invitados', 'horas_servicio'],
   2: ['fecha', 'fecha_fin', 'hora_inicio', 'hora_fin'],
-  3: ['localidad', 'direccion', 'ambiente'],
+  3: ['localidad', 'direccion'],
   4: [], // menú es opcional
   5: ['nombre', 'email', 'telefono']
 };
@@ -460,25 +463,18 @@ function buildMessage(formData){
          `Mensaje: ${(formData.get('mensaje') || '—').toString().slice(0, 500)}`;
 }
 
-// Bloques opcionales de logística y menú para el mensaje (solo lo que tenga valor)
+// Add-ons seleccionados para el mensaje.
 function buildExtrasBlock(formData){
   const val = (n) => (formData.get(n) || '').toString().trim();
   const multi = (n) => formData.getAll(n).map(v => String(v).trim()).filter(Boolean).join(', ');
 
-  const logistica = [
-    ['Ambiente', val('ambiente')],
-    ['Acceso', val('acceso')],
-    ['Corriente', val('corriente')],
-    ['Estacionamiento', val('estacionamiento')]
-  ].filter(([,v]) => v);
-
   const menu = [
-    ['Iced coffees (add-on)', multi('menu_frias')],
+    ['Bebidas frías (add-on)', multi('menu_frias')],
+    ['Matcha (add-on)', multi('menu_matcha')],
     ['Cócteles de café (add-on)', multi('menu_licor')]
   ].filter(([,v]) => v);
 
   let out = '';
-  if (logistica.length) out += '\nLogística:\n' + logistica.map(([k,v]) => `- ${k}: ${v}`).join('\n') + '\n';
   if (menu.length)      out += '\nMenú deseado:\n' + menu.map(([k,v]) => `- ${k}: ${v}`).join('\n') + '\n';
   return out ? out + '\n' : '';
 }
@@ -725,8 +721,6 @@ form?.addEventListener('submit', (e) => {
         start_time: (fd.get('hora_inicio') || '').toString(),
         service_hours: parseInt(fd.get('horas_servicio') || '0', 10) || 0,
         end_time: (fd.get('hora_fin') || '').toString(),
-        ambiente: (fd.get('ambiente') || '').toString(),
-        corriente: (fd.get('corriente') || '').toString(),
         menu_items: menuCount,
         cliente_tipo: (fd.get('cliente_tipo') || '').toString(),
       };
@@ -787,22 +781,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const host = document.getElementById('menuCatalog');
     if (!host) return;
     const included = `
-      <div class="mt-4 rounded-xl border border-brand-green/15 bg-brand-green/5 p-4">
-        <p class="text-sm font-semibold text-brand-green mb-2">✓ Tu paquete ya incluye</p>
+      <div class="menu-included mt-4">
+        <p class="menu-eyebrow">Incluido en tu servicio</p>
+        <p class="font-serif text-xl text-brand-green mb-3">La experiencia Monselatte</p>
         <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-brand-text/80">
           ${MENU_INCLUDED.map(item => `<li class="flex gap-2"><span class="text-brand-green">✓</span><span>${item}</span></li>`).join('')}
         </ul>
       </div>
     `;
     host.innerHTML = included + MENU_CATALOG.map(cat => `
-      <div class="mt-6" data-field-group="${cat.field}">
-        <p class="block text-sm font-medium mb-1">${cat.label}</p>
-        ${cat.note ? `<p class="text-xs text-brand-text/60 mb-2">${cat.note}</p>` : ''}
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div class="menu-addon" data-field-group="${cat.field}">
+        <div class="menu-addon__copy"><p class="menu-eyebrow">Extra opcional</p><p class="font-serif text-xl text-brand-green">${cat.label}</p>
+        ${cat.note ? `<p class="mt-1 text-sm text-brand-text/65">${cat.note}</p>` : ''}</div>
+        <div class="menu-addon__choices">
           ${cat.items.map(item => `
             <label class="cursor-pointer">
               <input type="checkbox" name="${cat.field}" value="${item}" class="peer sr-only" />
-              <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">${item}</span>
+              <span class="menu-choice"><span>${item}</span><span class="menu-choice__mark" aria-hidden="true">+</span></span>
             </label>
           `).join('')}
         </div>
@@ -838,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Invitados', val('invitados'), 1],
       ['Fecha', fecha, 2],
       ['Horario', val('hora_inicio') && val('hora_fin') ? `${val('hora_inicio')}–${val('hora_fin')} (${val('horas_servicio')}h)` : '', 2],
-      ['Lugar', [val('localidad'), val('ambiente')].filter(Boolean).join(' · '), 3],
+      ['Lugar', [val('localidad'), val('direccion')].filter(Boolean).join(' · '), 3],
       ['Menú', adds ? `Paquete básico + ${adds}` : 'Paquete básico', 4]
     ].filter(([,v]) => v);
 
@@ -875,11 +870,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!(opts && opts.silent)) {
       const heading = steps[n-1].querySelector('.wizard-heading');
       if (heading) heading.focus({ preventScroll: true });
-      // Anclamos al tope del wizard (barra de progreso), NO al fieldset:
-      // anclar al fieldset dejaba el título/progreso fuera de pantalla y el
-      // usuario tenía que scrollear hacia arriba en cada paso.
       const anchor = document.getElementById('wizardTop') || steps[n-1];
-      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const rect = anchor.getBoundingClientRect();
+      // Conserva la posición del usuario. Solo corrige si el progreso quedó
+      // oculto por encima del header o completamente fuera de la pantalla.
+      if (rect.top < 88 || rect.top > window.innerHeight - 100) {
+        window.scrollTo({ top: window.scrollY + rect.top - 96, behavior: 'auto' });
+      }
     }
   }
   // Los handlers de envío (fuera de este closure) la usan para saltar a errores
@@ -901,7 +898,10 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.classList.remove('hidden');
     const heading = panel.querySelector('.wizard-heading');
     if (heading) heading.focus({ preventScroll: true });
-    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const rect = panel.getBoundingClientRect();
+    if (rect.top < 88 || rect.top > window.innerHeight - 120) {
+      window.scrollTo({ top: window.scrollY + rect.top - 96, behavior: 'auto' });
+    }
     trackEvent('wizard_success_view', {});
   }
   window.__wizardSuccess = showSuccess;
@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input?.addEventListener('input', updateFeedback);
   });
 
-  // --- Toggle Persona/Empresa (solo cambia label y autocomplete) ---
+  // --- Toggle Persona/Empresa (cambia label, autocomplete y ejemplo) ---
   const nombreInput = document.getElementById('f-nombre');
   const nombreLabel = document.getElementById('nombre-label');
   form.querySelectorAll('input[name="cliente_tipo"]').forEach(r => {
@@ -967,7 +967,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (nombreLabel) nombreLabel.textContent = empresa ? 'Nombre de la empresa*' : 'Nombre y Apellidos*';
       if (nombreInput) {
         nombreInput.setAttribute('autocomplete', empresa ? 'organization' : 'name');
-        nombreInput.placeholder = empresa ? 'Ej: Café 787 & Co.' : '';
+        nombreInput.placeholder = empresa ? 'Jubilin Entertainment LLC' : '';
       }
     });
   });

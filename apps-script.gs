@@ -78,9 +78,8 @@ const LEADS_HEADERS = [
   'estado','deposito_at','recordatorio_1','recordatorio_2',
   'precio_sugerido','desglose','no_contactar','calendar_event_id',
 
-  // wizard: logística del evento + menú seleccionado
-  'ambiente','acceso','corriente','estacionamiento',
-  'menu_calientes','menu_frias','menu_licor','sabores','leches',
+  // wizard: menú seleccionado
+  'menu_calientes','menu_frias','menu_matcha','menu_licor','sabores','leches',
   'fecha_fin' // eventos multi-día (vacío = un solo día)
 ];
 
@@ -155,12 +154,9 @@ function doPost(e) {
     page_path:      (data.page_path   || ''),
     estado:         'NUEVO',
 
-    ambiente:        clean.ambiente,
-    acceso:          clean.acceso,
-    corriente:       clean.corriente,
-    estacionamiento: clean.estacionamiento,
     menu_calientes:  clean.menu_calientes,
     menu_frias:      clean.menu_frias,
+    menu_matcha:     clean.menu_matcha,
     menu_licor:      clean.menu_licor,
     sabores:         clean.sabores,
     leches:          clean.leches,
@@ -309,14 +305,10 @@ function sanitizeInput(d) {
     paquete:   safe(d.paquete),
     mensaje:   safe(d.mensaje),
 
-    // Campos del wizard (opcionales; llegan vacíos desde HTML viejo cacheado).
-    // Topes de largo: son texto libre en el POST aunque el form use tarjetas.
-    ambiente:        capped(d.ambiente, 40),
-    acceso:          capped(d.acceso, 60),
-    corriente:       capped(d.corriente, 60),
-    estacionamiento: capped(d.estacionamiento, 60),
+    // Add-ons del menú (opcionales).
     menu_calientes:  capped(d.menu_calientes, 200),
     menu_frias:      capped(d.menu_frias, 200),
+    menu_matcha:     capped(d.menu_matcha, 120),
     menu_licor:      capped(d.menu_licor, 120),
     sabores:         capped(d.sabores, 160),
     leches:          capped(d.leches, 120),
@@ -491,17 +483,10 @@ const fields = [
     ['Teléfono',   lead.telefono || '—']
   ] : [];
 
-  // Logística y menú (campos del wizard). Para el admin se muestran siempre
-  // (con '—' si faltan); al cliente solo las filas con valor.
-  const logisticaAll = [
-    ['Ambiente',        lead.ambiente || '—'],
-    ['Acceso',          lead.acceso || '—'],
-    ['Corriente',       lead.corriente || '—'],
-    ['Estacionamiento', lead.estacionamiento || '—']
-  ];
   const withValue = (pairs) => pairs.filter(([,v]) => v && v !== '—');
   const menuAddons = [
-    ['Iced coffees (add-on)',      lead.menu_frias || '—'],
+    ['Bebidas frías (add-on)',     lead.menu_frias || '—'],
+    ['Matcha (add-on)',            lead.menu_matcha || '—'],
     ['Cócteles de café (add-on)',  lead.menu_licor || '—']
   ];
   // Campos de versiones anteriores del form: solo si traen valor
@@ -510,7 +495,6 @@ const fields = [
     ['Sabores',           lead.sabores || ''],
     ['Leches',            lead.leches || '']
   ]);
-  const logistica = forAdmin ? logisticaAll : withValue(logisticaAll);
   const menu      = (forAdmin ? menuAddons : withValue(menuAddons)).concat(menuLegacy);
 
   // El cliente ve TODO lo que incluye su paquete (el admin ya lo sabe)
@@ -518,7 +502,6 @@ const fields = [
 
   // Texto simple (fallback)
   const pairsToText = (pairs) => pairs.map(([k,v]) => `${k}: ${v}`).join('\n');
-  const logisticaText = logistica.length ? `\n\nLogística:\n${pairsToText(logistica)}` : '';
   const menuText      = menu.length      ? `\n\nMenú solicitado:\n${pairsToText(menu)}` : '';
   const incluyeText   = incluye.length   ? `\n\nTu paquete incluye:\n${incluye.map(i => `- ${i}`).join('\n')}` : '';
 
@@ -537,7 +520,7 @@ Hora fin: ${lead.hora_fin || '—'}
 Localidad: ${lead.localidad}
 Dirección: ${lead.direccion}
 Tipo de evento: ${lead.tipo}
-Invitados: ${lead.invitados}${logisticaText}${menuText}
+Invitados: ${lead.invitados}${menuText}
 
 Mensaje: ${lead.mensaje || '—'}
 `;
@@ -556,7 +539,7 @@ Hora fin: ${lead.hora_fin || '—'}
 Localidad: ${lead.localidad}
 Dirección: ${lead.direccion}
 Tipo de evento: ${lead.tipo}
-Invitados: ${lead.invitados}${logisticaText}${menuText}${incluyeText}
+Invitados: ${lead.invitados}${menuText}${incluyeText}
 
 — ${COMPANY.name}`;
   }
@@ -584,7 +567,6 @@ Invitados: ${lead.invitados}${logisticaText}${menuText}${incluyeText}
   ` : '';
 
   const rows = toRows([...adminExtra, ...fields])
-    + (logistica.length ? sectionHeader('Logística del evento') + toRows(logistica) : '')
     + incluyeRows
     + (menu.length      ? sectionHeader('Menú solicitado')      + toRows(menu)      : '');
 
@@ -689,9 +671,8 @@ const PUERTO_RICO_MUNICIPIOS = new Set([
  *   "nombre","email","telefono","fecha","hora_inicio","horas_servicio","hora_fin",
  *   "localidad","direccion","tipo","invitados","paquete","mensaje",
  *   "website" // honeypot invisible, debe llegar vacío
- *   // Opcionales del wizard (logística + menú):
- *   "ambiente","acceso","corriente","estacionamiento",
- *   "menu_calientes","menu_frias","menu_licor","sabores","leches",
+ *   // Opcionales del wizard (add-ons de menú):
+ *   "menu_calientes","menu_frias","menu_matcha","menu_licor","sabores","leches",
  *   // Opcionales de tracking (si existen en la URL o el frontend):
  *   "utm_source","utm_medium","utm_campaign","utm_term","utm_content",
  *   "referrer","page_path"

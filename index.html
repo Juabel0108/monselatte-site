@@ -612,10 +612,11 @@
             </div>
           </fieldset>
 
-          <!-- ===== PASO 3: Lugar y logística ===== -->
-          <fieldset class="wizard-step" data-step="3" data-step-name="Lugar y logística" hidden>
-            <legend class="sr-only">Lugar y logística</legend>
-            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">¿Dónde montamos la barra?</h3>
+          <!-- ===== PASO 3: Lugar ===== -->
+          <fieldset class="wizard-step" data-step="3" data-step-name="Lugar" hidden>
+            <legend class="sr-only">Lugar del evento</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">¿Dónde será tu evento?</h3>
+            <p class="mt-1 text-sm text-brand-text/65">Con el municipio y la dirección podemos preparar tu primera cotización. Coordinaremos los detalles de montaje más adelante.</p>
 
             <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -628,90 +629,11 @@
               <div>
                 <label for="f-direccion" class="block text-sm font-medium">Dirección del evento*</label>
                 <input id="f-direccion" name="direccion" type="text"
-                       placeholder="Calle, #, urbanización/venue y referencias"
+                       placeholder="Nombre del lugar, calle y número"
                        class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
               </div>
             </div>
 
-            <div class="mt-6" data-field-group="ambiente">
-              <p class="block text-sm font-medium mb-2" id="ambiente-label">El evento es…*</p>
-              <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-labelledby="ambiente-label">
-                <label class="cursor-pointer">
-                  <input type="radio" name="ambiente" value="Al aire libre" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🌤️ Al aire libre</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="ambiente" value="Interior" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🏠 Interior</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="ambiente" value="Ambos" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🌗 Ambos</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="mt-6" data-field-group="acceso">
-              <p class="block text-sm font-medium mb-2" id="acceso-label">¿Cómo es el acceso para la barra? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-labelledby="acceso-label">
-                <label class="cursor-pointer">
-                  <input type="radio" name="acceso" value="A nivel, sin escalones" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">A nivel</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="acceso" value="Hay escaleras" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Escaleras</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="acceso" value="Hay elevador" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Elevador</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="acceso" value="No sé aún" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="mt-6" data-field-group="corriente">
-              <p class="block text-sm font-medium mb-2" id="corriente-label">¿Hay corriente eléctrica cerca del área de la barra? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-labelledby="corriente-label">
-                <label class="cursor-pointer">
-                  <input type="radio" name="corriente" value="Sí, cerca" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Sí, cerca</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="corriente" value="Lejos (se necesita extensión)" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Lejos</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="corriente" value="No hay" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No hay</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="corriente" value="No sé aún" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="mt-6" data-field-group="estacionamiento">
-              <p class="block text-sm font-medium mb-2" id="estacionamiento-label">¿Estacionamiento para el montaje? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
-              <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-labelledby="estacionamiento-label">
-                <label class="cursor-pointer">
-                  <input type="radio" name="estacionamiento" value="Fácil" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Fácil</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="estacionamiento" value="Limitado" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Limitado</span>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="estacionamiento" value="No sé aún" class="peer sr-only" />
-                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
-                </label>
-              </div>
-            </div>
           </fieldset>
 
           <!-- ===== PASO 4: Tu menú (opcional) ===== -->
@@ -756,7 +678,7 @@
               </div>
               <div class="sm:col-span-2">
                 <label for="f-mensaje" class="block text-sm font-medium">Mensaje (opcional)</label>
-                <textarea id="f-mensaje" name="mensaje" rows="3" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
+                <textarea id="f-mensaje" name="mensaje" rows="3" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos cualquier detalle que debamos conocer."></textarea>
               </div>
             </div>
 
@@ -1095,6 +1017,6 @@
     </div>
   </footer>
 
-  <script defer src="main.js?v=wizard2"></script>
+  <script defer src="main.js?v=wizard3"></script>
 </body>
 </html>
