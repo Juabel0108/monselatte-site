@@ -155,3 +155,12 @@ html { scroll-behavior: smooth; }
   border-radius:18px;
   display:block;
 }
+
+/* ====== Wizard de cotización ====== */
+/* Los headings reciben focus programático al cambiar de paso (accesibilidad),
+   pero no deben mostrar el anillo de focus visual. */
+.wizard-heading:focus { outline: none; }
+/* Quita los spinners nativos de los inputs number de los steppers */
+.wizard-step input[type="number"]::-webkit-outer-spin-button,
+.wizard-step input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.wizard-step input[type="number"] { -moz-appearance: textfield; appearance: textfield; }

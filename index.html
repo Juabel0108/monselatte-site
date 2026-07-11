@@ -490,177 +490,285 @@
         <p class="mt-3 text-brand-text/80">Cuéntanos de tu evento y te respondemos con disponibilidad y cotización.</p>
         <p class="text-sm text-brand-text/70 mt-2">Servicio de coffee cart en San Juan, Bayamón, Dorado, Caguas y toda la isla.</p>
 
-        <form id="leadForm" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 reveal">
+        <form id="leadForm" class="mt-8 reveal" novalidate>
           <!-- Honeypot anti-spam (bots suelen llenarlo). Si tiene valor, NO enviamos -->
           <div class="hidden">
             <label for="website" class="sr-only">No completar</label>
             <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true">
           </div>
+
+          <!-- Barra de progreso del wizard -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between gap-3">
+              <span id="wizardLabel" class="text-sm font-semibold text-brand-green" aria-live="polite">Paso 1 de 5 — Tu evento</span>
+              <span id="wizardCount" class="text-sm text-brand-text/60">1/5</span>
+            </div>
+            <div class="mt-2 h-2 rounded-full bg-brand-green/10 overflow-hidden">
+              <div id="wizardBar" class="h-full w-1/5 bg-brand-gold rounded-full transition-all duration-300"></div>
+            </div>
+          </div>
+
           <!-- Contenedor de errores de validación -->
           <div id="errors"
-               class="sm:col-span-2 text-sm text-red-700 hidden"
+               class="mb-4 text-sm text-red-700 hidden"
                role="status"
                aria-live="polite"></div>
-          <div class="sm:col-span-1">
-            <label for="f-nombre" class="block text-sm font-medium">Nombre y Apellidos*</label>
-            <input id="f-nombre" required name="nombre" type="text" autocomplete="name" inputmode="text" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}" title="Solo letras, espacios y acentos (2–60 caracteres)" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
-          <div class="sm:col-span-1">
-            <label for="f-email" class="block text-sm font-medium">Email*</label>
-            <input id="f-email" required name="email" type="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
-          <div class="sm:col-span-1">
-            <label for="f-telefono" class="block text-sm font-medium">Teléfono/WhatsApp*</label>
-            <input id="f-telefono" required name="telefono" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9()+\\-\\s]{7,}" title="Escribe un teléfono válido (solo dígitos, espacios, paréntesis o guiones)" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
-          <div class="sm:col-span-1">
-            <label for="f-fecha" class="block text-sm font-medium">Fecha del evento*</label>
-            <input id="f-fecha" required name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
-       <div class="sm:col-span-1">
-  <label for="f-hora-inicio" class="block text-sm font-medium">Hora de inicio del servicio*</label>
-  <input id="f-hora-inicio" required name="hora_inicio" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-</div>
 
-<div class="sm:col-span-1">
-  <label for="f-horas-servicio" class="block text-sm font-medium">Cantidad de horas de servicio*</label>
-  <select id="f-horas-servicio" required name="horas_servicio" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
-    <option value="" disabled selected>Selecciona horas</option>
-    <option value="2">2 horas</option>
-    <option value="3">3 horas</option>
-    <option value="4">4 horas</option>
-    <option value="5">5 horas</option>
-    <option value="6">6 horas</option>
-  </select>
-</div>
+          <!-- ===== PASO 1: Tu evento ===== -->
+          <fieldset class="wizard-step" data-step="1" data-step-name="Tu evento">
+            <legend class="sr-only">Tu evento</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">Cuéntanos de tu evento</h3>
 
-<div class="sm:col-span-1">
-  <label for="f-hora-fin" class="block text-sm font-medium">Hora de fin del servicio*</label>
-  <input id="f-hora-fin" required name="hora_fin" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-  <p class="mt-1 text-xs text-brand-text/60">Puedes editar el fin manualmente si tu evento lo requiere.</p>
-</div>
-          <div class="sm:col-span-1">
-            <label for="f-localidad" class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
-            <select id="f-localidad" required name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
-              <option value="" disabled selected>Selecciona un municipio</option>
-              <option>Adjuntas</option>
-              <option>Aguada</option>
-              <option>Aguadilla</option>
-              <option>Aguas Buenas</option>
-              <option>Aibonito</option>
-              <option>Arecibo</option>
-              <option>Arroyo</option>
-              <option>Barceloneta</option>
-              <option>Barranquitas</option>
-              <option>Bayamón</option>
-              <option>Cabo Rojo</option>
-              <option>Caguas</option>
-              <option>Camuy</option>
-              <option>Canóvanas</option>
-              <option>Carolina</option>
-              <option>Cataño</option>
-              <option>Cayey</option>
-              <option>Ceiba</option>
-              <option>Ciales</option>
-              <option>Cidra</option>
-              <option>Coamo</option>
-              <option>Comerío</option>
-              <option>Corozal</option>
-              <option>Culebra</option>
-              <option>Dorado</option>
-              <option>Fajardo</option>
-              <option>Florida</option>
-              <option>Guánica</option>
-              <option>Guayama</option>
-              <option>Guayanilla</option>
-              <option>Guaynabo</option>
-              <option>Gurabo</option>
-              <option>Hatillo</option>
-              <option>Hormigueros</option>
-              <option>Humacao</option>
-              <option>Isabela</option>
-              <option>Jayuya</option>
-              <option>Juana Díaz</option>
-              <option>Juncos</option>
-              <option>Lajas</option>
-              <option>Lares</option>
-              <option>Las Marías</option>
-              <option>Las Piedras</option>
-              <option>Loíza</option>
-              <option>Luquillo</option>
-              <option>Manatí</option>
-              <option>Maricao</option>
-              <option>Maunabo</option>
-              <option>Mayagüez</option>
-              <option>Moca</option>
-              <option>Morovis</option>
-              <option>Naguabo</option>
-              <option>Naranjito</option>
-              <option>Orocovis</option>
-              <option>Patillas</option>
-              <option>Peñuelas</option>
-              <option>Ponce</option>
-              <option>Quebradillas</option>
-              <option>Rincón</option>
-              <option>Río Grande</option>
-              <option>Sabana Grande</option>
-              <option>Salinas</option>
-              <option>San Germán</option>
-              <option>San Juan</option>
-              <option>San Lorenzo</option>
-              <option>San Sebastián</option>
-              <option>Santa Isabel</option>
-              <option>Toa Alta</option>
-              <option>Toa Baja</option>
-              <option>Trujillo Alto</option>
-              <option>Utuado</option>
-              <option>Vega Alta</option>
-              <option>Vega Baja</option>
-              <option>Vieques</option>
-              <option>Villalba</option>
-              <option>Yabucoa</option>
-              <option>Yauco</option>
-            </select>
+            <div class="mt-5" data-field-group="tipo">
+              <p class="block text-sm font-medium mb-2" id="tipo-label">¿Qué celebras?*</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" role="radiogroup" aria-labelledby="tipo-label">
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Boda" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">💍 Boda</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Corporativo" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">💼 Corporativo</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Cumpleaños" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🎂 Cumpleaños</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Baby shower" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🍼 Baby shower</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Aniversario" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">💐 Aniversario</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="tipo" value="Otro" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">✨ Otro</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="tipoOtroWrap" class="mt-4 hidden">
+              <label for="tipo_otro" class="block text-sm font-medium">Especifica el tipo de evento</label>
+              <input type="text" id="tipo_otro" name="tipo_otro" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Describe el evento" />
+            </div>
+
+            <div class="mt-6">
+              <label for="f-invitados" class="block text-sm font-medium">Café para…*</label>
+              <div class="mt-2 flex items-center gap-3">
+                <button type="button" class="stepper-btn h-11 w-11 rounded-full border-2 border-brand-green text-brand-green text-2xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-stepper="invitados" data-delta="-10" aria-label="Menos invitados">−</button>
+                <input id="f-invitados" name="invitados" type="number" inputmode="numeric" min="1" max="500" step="1" value="50" aria-describedby="invitados-unit" class="w-24 text-center text-3xl font-serif font-semibold text-brand-green bg-transparent border-0 border-b-2 border-brand-green/30 focus:outline-none focus:border-brand-green" />
+                <button type="button" class="stepper-btn h-11 w-11 rounded-full border-2 border-brand-green text-brand-green text-2xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-stepper="invitados" data-delta="10" aria-label="Más invitados">+</button>
+                <span id="invitados-unit" class="text-brand-text/70">invitados</span>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <label for="f-horas-servicio" class="block text-sm font-medium">Durante…*</label>
+              <div class="mt-2 flex items-center gap-3">
+                <button type="button" class="stepper-btn h-11 w-11 rounded-full border-2 border-brand-green text-brand-green text-2xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-stepper="horas_servicio" data-delta="-1" aria-label="Menos horas">−</button>
+                <input id="f-horas-servicio" name="horas_servicio" type="number" inputmode="numeric" min="2" max="8" step="1" value="2" aria-describedby="horas-unit" class="w-20 text-center text-3xl font-serif font-semibold text-brand-green bg-transparent border-0 border-b-2 border-brand-green/30 focus:outline-none focus:border-brand-green" />
+                <button type="button" class="stepper-btn h-11 w-11 rounded-full border-2 border-brand-green text-brand-green text-2xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-stepper="horas_servicio" data-delta="1" aria-label="Más horas">+</button>
+                <span id="horas-unit" class="text-brand-text/70">horas de servicio</span>
+              </div>
+            </div>
+
+            <p id="wizardFeedback" class="mt-6 rounded-xl border border-brand-green/15 bg-brand-green/5 px-4 py-3 text-sm text-brand-green" hidden></p>
+          </fieldset>
+
+          <!-- ===== PASO 2: Fecha y horario ===== -->
+          <fieldset class="wizard-step" data-step="2" data-step-name="Fecha y horario" hidden>
+            <legend class="sr-only">Fecha y horario</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">¿Cuándo es tu evento?</h3>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label for="f-fecha" class="block text-sm font-medium">Fecha del evento*</label>
+                <input id="f-fecha" name="fecha" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+              <div>
+                <label for="f-hora-inicio" class="block text-sm font-medium">Hora de inicio*</label>
+                <input id="f-hora-inicio" name="hora_inicio" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+              <div>
+                <label for="f-hora-fin" class="block text-sm font-medium">Hora de fin*</label>
+                <input id="f-hora-fin" name="hora_fin" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+                <p class="mt-1 text-xs text-brand-text/60">La calculamos por ti según las horas de servicio — ajústala si lo necesitas.</p>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- ===== PASO 3: Lugar y logística ===== -->
+          <fieldset class="wizard-step" data-step="3" data-step-name="Lugar y logística" hidden>
+            <legend class="sr-only">Lugar y logística</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">¿Dónde montamos la barra?</h3>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="f-localidad" class="block text-sm font-medium">Municipio (Puerto Rico)*</label>
+                <select id="f-localidad" name="localidad" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
+                  <option value="" disabled selected>Selecciona un municipio</option>
+                  <option>Adjuntas</option><option>Aguada</option><option>Aguadilla</option><option>Aguas Buenas</option><option>Aibonito</option><option>Arecibo</option><option>Arroyo</option><option>Barceloneta</option><option>Barranquitas</option><option>Bayamón</option><option>Cabo Rojo</option><option>Caguas</option><option>Camuy</option><option>Canóvanas</option><option>Carolina</option><option>Cataño</option><option>Cayey</option><option>Ceiba</option><option>Ciales</option><option>Cidra</option><option>Coamo</option><option>Comerío</option><option>Corozal</option><option>Culebra</option><option>Dorado</option><option>Fajardo</option><option>Florida</option><option>Guánica</option><option>Guayama</option><option>Guayanilla</option><option>Guaynabo</option><option>Gurabo</option><option>Hatillo</option><option>Hormigueros</option><option>Humacao</option><option>Isabela</option><option>Jayuya</option><option>Juana Díaz</option><option>Juncos</option><option>Lajas</option><option>Lares</option><option>Las Marías</option><option>Las Piedras</option><option>Loíza</option><option>Luquillo</option><option>Manatí</option><option>Maricao</option><option>Maunabo</option><option>Mayagüez</option><option>Moca</option><option>Morovis</option><option>Naguabo</option><option>Naranjito</option><option>Orocovis</option><option>Patillas</option><option>Peñuelas</option><option>Ponce</option><option>Quebradillas</option><option>Rincón</option><option>Río Grande</option><option>Sabana Grande</option><option>Salinas</option><option>San Germán</option><option>San Juan</option><option>San Lorenzo</option><option>San Sebastián</option><option>Santa Isabel</option><option>Toa Alta</option><option>Toa Baja</option><option>Trujillo Alto</option><option>Utuado</option><option>Vega Alta</option><option>Vega Baja</option><option>Vieques</option><option>Villalba</option><option>Yabucoa</option><option>Yauco</option>
+                </select>
+              </div>
+              <div>
+                <label for="f-direccion" class="block text-sm font-medium">Dirección del evento*</label>
+                <input id="f-direccion" name="direccion" type="text"
+                       placeholder="Calle, #, urbanización/venue y referencias"
+                       class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+            </div>
+
+            <div class="mt-6" data-field-group="ambiente">
+              <p class="block text-sm font-medium mb-2" id="ambiente-label">El evento es…*</p>
+              <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-labelledby="ambiente-label">
+                <label class="cursor-pointer">
+                  <input type="radio" name="ambiente" value="Al aire libre" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🌤️ Al aire libre</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="ambiente" value="Interior" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🏠 Interior</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="ambiente" value="Ambos" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">🌗 Ambos</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="mt-6" data-field-group="acceso">
+              <p class="block text-sm font-medium mb-2" id="acceso-label">¿Cómo es el acceso para la barra? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-labelledby="acceso-label">
+                <label class="cursor-pointer">
+                  <input type="radio" name="acceso" value="A nivel, sin escalones" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">A nivel</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="acceso" value="Hay escaleras" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Escaleras</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="acceso" value="Hay elevador" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Elevador</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="acceso" value="No sé aún" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="mt-6" data-field-group="corriente">
+              <p class="block text-sm font-medium mb-2" id="corriente-label">¿Hay corriente eléctrica cerca del área de la barra? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-labelledby="corriente-label">
+                <label class="cursor-pointer">
+                  <input type="radio" name="corriente" value="Sí, cerca" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Sí, cerca</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="corriente" value="Lejos (se necesita extensión)" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Lejos</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="corriente" value="No hay" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No hay</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="corriente" value="No sé aún" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="mt-6" data-field-group="estacionamiento">
+              <p class="block text-sm font-medium mb-2" id="estacionamiento-label">¿Estacionamiento para el montaje? <span class="text-brand-text/50 font-normal">(opcional)</span></p>
+              <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-labelledby="estacionamiento-label">
+                <label class="cursor-pointer">
+                  <input type="radio" name="estacionamiento" value="Fácil" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Fácil</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="estacionamiento" value="Limitado" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Limitado</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="estacionamiento" value="No sé aún" class="peer sr-only" />
+                  <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">No sé aún</span>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- ===== PASO 4: Tu menú (opcional) ===== -->
+          <fieldset class="wizard-step" data-step="4" data-step-name="Tu menú" hidden>
+            <legend class="sr-only">Tu menú</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">Arma tu menú <span class="text-base font-sans text-brand-text/50 font-normal">(opcional — también podemos recomendarte)</span></h3>
+            <!-- Las tarjetas se generan desde MENU_CATALOG en main.js -->
+            <div id="menuCatalog" class="mt-2"></div>
+          </fieldset>
+
+          <!-- ===== PASO 5: Contacto y envío ===== -->
+          <fieldset class="wizard-step" data-step="5" data-step-name="Contacto" hidden>
+            <legend class="sr-only">Contacto y envío</legend>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">¿A dónde te enviamos la cotización?</h3>
+
+            <div class="mt-5" data-field-group="cliente_tipo">
+              <div class="inline-flex rounded-full border border-black/10 bg-brand-cream p-1" role="radiogroup" aria-label="Tipo de cliente">
+                <label class="cursor-pointer">
+                  <input type="radio" name="cliente_tipo" value="Persona" class="peer sr-only" checked />
+                  <span class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-brand-text/70 transition peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Persona</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="cliente_tipo" value="Empresa" class="peer sr-only" />
+                  <span class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-brand-text/70 transition peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">Empresa</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="f-nombre" id="nombre-label" class="block text-sm font-medium">Nombre y Apellidos*</label>
+                <input id="f-nombre" name="nombre" type="text" autocomplete="name" inputmode="text" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+              <div>
+                <label for="f-email" class="block text-sm font-medium">Email*</label>
+                <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+              <div>
+                <label for="f-telefono" class="block text-sm font-medium">Teléfono/WhatsApp*</label>
+                <input id="f-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-mensaje" class="block text-sm font-medium">Mensaje (opcional)</label>
+                <textarea id="f-mensaje" name="mensaje" rows="3" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
+              </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="mt-6 rounded-xl border border-black/10 bg-brand-cream/60 p-4">
+              <p class="text-sm font-semibold text-brand-green mb-2">Resumen de tu solicitud</p>
+              <dl id="wizardSummary" class="text-sm text-brand-text/80 space-y-1"></dl>
+            </div>
+
+            <p class="mt-4 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización. Parte de esta información se registrará de forma segura para dar seguimiento a tu solicitud.</p>
+            <p class="mt-1 text-xs text-brand-text/60">No es un compromiso. Solo para confirmar disponibilidad y enviarte la cotización.</p>
+
+            <div class="mt-5 flex flex-col sm:flex-row gap-3">
+              <button type="submit" data-channel="whatsapp" class="inline-flex items-center justify-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por WhatsApp</button>
+              <button type="button" id="sendEmail" class="inline-flex items-center justify-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 hover:shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por Email</button>
+            </div>
+            <div id="formMsg" class="text-sm text-emerald-700 mt-3 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío. Te responderemos en 24–48 h.</div>
+            <div id="saveHint" class="text-sm text-brand-text/60 mt-1 hidden">Datos registrados. Si no recibes respuesta en 24–48 h, escríbenos por WhatsApp.</div>
+          </fieldset>
+
+          <!-- Navegación del wizard -->
+          <div class="mt-8 flex items-center justify-between gap-3">
+            <button type="button" id="wizardBack" class="inline-flex items-center px-4 py-2.5 rounded-md text-brand-text/70 border border-black/10 hover:border-brand-green/40 hover:text-brand-green transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green" style="display:none">← Atrás</button>
+            <span class="flex-1"></span>
+            <button type="button" id="wizardNext" class="inline-flex items-center px-6 py-3 rounded-md bg-brand-green text-white font-medium shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Siguiente →</button>
           </div>
-          <div class="sm:col-span-2">
-            <label for="f-direccion" class="block text-sm font-medium">Dirección del evento*</label>
-            <input id="f-direccion" required name="direccion" type="text"
-                   placeholder="Calle, #, urbanización/venue y referencias"
-                   class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-            <p class="mt-1 text-xs text-brand-text/60">Incluye calle, número, urbanización o nombre del venue y referencias de acceso.</p>
-          </div>
-          <div class="sm:col-span-1">
-            <label for="f-tipo" class="block text-sm font-medium">Tipo de evento*</label>
-            <select id="f-tipo" required name="tipo" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green">
-              <option value="" disabled selected>Selecciona un tipo de evento</option>
-              <option value="Boda">Boda</option>
-              <option value="Baby shower">Baby shower</option>
-              <option value="Cumpleaños">Cumpleaños</option>
-              <option value="Aniversario">Aniversario</option>
-              <option value="Corporativo">Corporativo</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-          <div id="tipoOtroWrap" class="sm:col-span-1 hidden">
-            <label for="tipo_otro" class="block text-sm font-medium">Especifica el tipo de evento</label>
-            <input type="text" id="tipo_otro" name="tipo_otro" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Describe el evento" />
-          </div>
-          <div class="sm:col-span-1">
-            <label for="f-invitados" class="block text-sm font-medium">Cantidad de invitados*</label>
-            <input id="f-invitados" required name="invitados" type="number" min="1" max="500" step="1" title="Entre 1 y 500" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
-          </div>
-          <div class="sm:col-span-2">
-            <label for="f-mensaje" class="block text-sm font-medium">Mensaje (opcional)</label>
-            <textarea id="f-mensaje" name="mensaje" rows="4" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" placeholder="Cuéntanos detalles útiles: horario, lugar exacto, acceso, etc."></textarea>
-          </div>
-          <p class="sm:col-span-2 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización. Parte de esta información se registrará de forma segura para dar seguimiento a tu solicitud.</p>
-          <p class="sm:col-span-2 text-xs text-brand-text/60">No es un compromiso. Solo para confirmar disponibilidad y enviarte la cotización.</p>
-          <div class="sm:col-span-2 flex flex-wrap gap-3">
-            <button type="submit" data-channel="whatsapp" class="inline-flex items-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por WhatsApp</button>
-            <button type="button" id="sendEmail" class="inline-flex items-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 hover:shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por Email</button>
-          </div>
-          <div id="formMsg" class="sm:col-span-2 text-sm text-emerald-700 mt-2 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío. Te responderemos en 24–48 h.</div>
-          <div id="saveHint" class="sm:col-span-2 text-sm text-brand-text/60 mt-1 hidden">Datos registrados. Si no recibes respuesta en 24–48 h, escríbenos por WhatsApp.</div>
         </form>
       </div>
     </section>
@@ -962,6 +1070,6 @@
     </div>
   </footer>
 
-  <script defer src="main.js"></script>
+  <script defer src="main.js?v=wizard2"></script>
 </body>
 </html>

@@ -21,6 +21,52 @@ if (!document.querySelector('meta[name="sheet-webapp-url"]')?.content) {
   console.warn('sheet-webapp-url: falta el meta tag en esta página; usando fallback hardcodeado (puede estar desactualizado).');
 }
 
+// GA4 seguro desde cualquier módulo (no-op si gtag no cargó)
+function trackEvent(name, params) {
+  try {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', name, Object.assign({ transport_type: 'beacon' }, params || {}));
+  } catch (e) {
+    console && console.warn && console.warn('gtag failed:', e);
+  }
+}
+
+// --- Menú del wizard (EDITABLE POR EL DUEÑO) ---------------------------
+// Cada categoría genera tarjetas checkbox en el paso 4. `field` es el nombre
+// que viaja al Sheet/emails (si añades una categoría nueva, agrégala también
+// a LEADS_HEADERS y sanitizeInput en apps-script.gs).
+const MENU_CATALOG = [
+  {
+    field: 'menu_calientes',
+    label: 'Bebidas calientes',
+    items: ['Espresso', 'Americano', 'Latte', 'Cappuccino', 'Cortado', 'Mocha', 'Chocolate caliente']
+  },
+  {
+    field: 'menu_frias',
+    label: 'Bebidas frías',
+    items: ['Iced latte', 'Iced americano', 'Cold brew', 'Iced chai']
+  },
+  {
+    field: 'menu_licor',
+    label: 'Cócteles de café (add-on)',
+    note: 'Con licor incluido por Monselatte — para eventos 21+.',
+    items: ['Espresso martini', 'Carajillo']
+  },
+  {
+    field: 'sabores',
+    label: 'Sabores',
+    items: ['Vainilla', 'Caramelo', 'Salted caramel', 'Avellana', 'Sabor de temporada']
+  },
+  {
+    field: 'leches',
+    label: 'Leches',
+    items: ['Regular', 'Oat', 'Almendra']
+  }
+];
+
+// Campos del wizard que son checkboxes multi-valor (comparten name)
+const MULTI_FIELDS = MENU_CATALOG.map(c => c.field);
+
 // Header: sombra y fondo al hacer scroll
 (function(){
   const header = document.querySelector('header');
@@ -85,6 +131,12 @@ if (!document.querySelector('meta[name="sheet-webapp-url"]')?.content) {
 async function saveToSheet(formData){
   try {
     const payload = Object.fromEntries(formData.entries());
+    // Los checkboxes del menú comparten name: Object.fromEntries solo conserva
+    // el último valor, así que los colapsamos aquí ("Latte, Cappuccino").
+    MULTI_FIELDS.forEach(f => {
+      const all = formData.getAll(f).map(v => String(v).trim()).filter(Boolean);
+      payload[f] = all.join(', ');
+    });
     Object.assign(payload, getUTM());
 
     // Merge "Otro" + detail into a single field for backend / Sheets / emails
@@ -136,7 +188,11 @@ function setFieldError(form, name, message){
     msgEl = document.createElement('p');
     msgEl.id = id;
     msgEl.className = 'field-error mt-1 text-xs text-red-700';
-    if (el.insertAdjacentElement) el.insertAdjacentElement('afterend', msgEl);
+    // Radios/checkboxes en tarjetas: el input es sr-only dentro de un label,
+    // así que el mensaje va al final del grupo, no pegado al input invisible.
+    const group = el.closest(`[data-field-group="${name}"]`) || form.querySelector(`[data-field-group="${name}"]`);
+    if (group) group.appendChild(msgEl);
+    else if (el.insertAdjacentElement) el.insertAdjacentElement('afterend', msgEl);
     else if (el.parentElement) el.parentElement.appendChild(msgEl);
   }
   msgEl.textContent = message;
@@ -177,84 +233,95 @@ function computeServiceHours(horaInicio, horaFin){
   return hrs;
 }
 
-function validateForm(form){
-  const data = new FormData(form);
-  const errors = [];
-  const fieldErrs = []; // {name, message}
+// Acepta persona O empresa ("Café 787 & Co."): letras, números y puntuación
+// básica, con al menos 2 letras (bloquea "12345"). Idéntica a la del backend.
+const RE_NOMBRE = /^(?=(?:.*\p{L}){2})[\p{L}\p{N}&.,'’()\- ]{2,80}$/u;
+const RE_EMAIL  = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-  // limpiar errores previos por campo
+// Cada validador recibe el FormData y devuelve un mensaje de error o null.
+const FIELD_VALIDATORS = {
+  nombre(d){
+    const v = (d.get('nombre')||'').trim();
+    return RE_NOMBRE.test(v) ? null : 'Escribe tu nombre o el de tu empresa (2–80 caracteres, con letras).';
+  },
+  email(d){
+    return RE_EMAIL.test((d.get('email')||'').trim()) ? null : 'Escribe un email válido.';
+  },
+  telefono(d){
+    const tel = normalizePhone((d.get('telefono')||'').trim());
+    return (tel.length >= 7 && tel.length <= 15) ? null : 'El teléfono debe tener entre 7 y 15 dígitos.';
+  },
+  fecha(d){
+    const v = (d.get('fecha')||'').trim();
+    if (!v) return 'Selecciona la fecha.';
+    if (v < todayISO()) return 'Elige una fecha futura.';
+    return null;
+  },
+  hora_inicio(d){
+    return (d.get('hora_inicio')||'').trim() ? null : 'Selecciona la hora de inicio.';
+  },
+  hora_fin(d){
+    const inicio = (d.get('hora_inicio')||'').trim();
+    const fin    = (d.get('hora_fin')||'').trim();
+    if (!fin) return 'Selecciona la hora de fin.';
+    if (inicio && !computeServiceHours(inicio, fin)) {
+      return 'La hora de fin debe ser posterior al inicio (máx. 12 horas).';
+    }
+    return null;
+  },
+  localidad(d){
+    return (d.get('localidad')||'').trim() ? null : 'Selecciona un municipio.';
+  },
+  direccion(d){
+    const v = (d.get('direccion')||'').trim();
+    return (v && v.length >= 8) ? null : 'Escribe una dirección más detallada (≥ 8 caracteres).';
+  },
+  invitados(d){
+    const n = parseInt(d.get('invitados')||'0', 10);
+    return (n >= 1 && n <= 500) ? null : 'Debe estar entre 1 y 500.';
+  },
+  horas_servicio(d){
+    const n = parseInt(d.get('horas_servicio')||'0', 10);
+    return (n >= 1 && n <= 12) ? null : 'Selecciona entre 2 y 8 horas.';
+  },
+  tipo(d){
+    return (d.get('tipo')||'').trim() ? null : 'Selecciona un tipo de evento.';
+  },
+  tipo_otro(d){
+    const tipo = (d.get('tipo')||'').trim();
+    if (tipo === 'Otro' && !(d.get('tipo_otro')||'').trim()) return 'Especifica el tipo de evento.';
+    return null;
+  },
+  ambiente(d){
+    return (d.get('ambiente')||'').trim() ? null : 'Indícanos si el evento es al aire libre o interior.';
+  }
+};
+
+// Qué campos valida cada paso del wizard
+const STEP_FIELDS = {
+  1: ['tipo', 'tipo_otro', 'invitados', 'horas_servicio'],
+  2: ['fecha', 'hora_inicio', 'hora_fin'],
+  3: ['localidad', 'direccion', 'ambiente'],
+  4: [], // menú es opcional
+  5: ['nombre', 'email', 'telefono']
+};
+const ALL_VALIDATED_FIELDS = Object.keys(FIELD_VALIDATORS);
+
+// Corre los validadores indicados, pinta errores y enfoca el primero.
+// Devuelve la lista de {name, message} (vacía si todo bien).
+function runValidators(form, data, names){
   clearAllFieldErrors(form);
+  const fieldErrs = [];
+  names.forEach(name => {
+    const fn = FIELD_VALIDATORS[name];
+    if (!fn) return;
+    const msg = fn(data);
+    if (msg) fieldErrs.push({ name, message: msg });
+  });
 
-  const hp = (data.get('website') || '').trim();
-  if(hp){
-    console.warn('Honeypot activado; bloqueo de envío.');
-    return { ok:false, spam:true, data };
-  }
-
-  const nombre=(data.get('nombre')||'').trim();
-  const email=(data.get('email')||'').trim();
-  const telRaw=(data.get('telefono')||'').trim();
-  const tel=normalizePhone(telRaw);
-  const fecha=(data.get('fecha')||'').trim();
-  const hora_inicio = (data.get('hora_inicio') || '').trim();
-  const hora_fin    = (data.get('hora_fin') || '').trim();  const loc=(data.get('localidad')||'').trim();
-  const direccion=(data.get('direccion')||'').trim();
-  const invitados=parseInt(data.get('invitados')||'0',10);
-
-  const reNombre=/^[A-Za-zÁÉÍÓÚÜÑáéíóúü' -]{2,60}$/;
-  const reEmail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-  if(!reNombre.test(nombre)){ errors.push('Nombre: usa solo letras y espacios (2–60).'); fieldErrs.push({name:'nombre', message:'Usa solo letras y espacios (2–60).'}); }
-  if(!reEmail.test(email)){ errors.push('Email: formato inválido.'); fieldErrs.push({name:'email', message:'Escribe un email válido.'}); }
-  if(tel.length < 7 || tel.length > 15){ errors.push('Teléfono: 7–15 dígitos.'); fieldErrs.push({name:'telefono', message:'El teléfono debe tener entre 7 y 15 dígitos.'}); }
-  if(!fecha){ errors.push('Selecciona la fecha del evento.'); fieldErrs.push({name:'fecha', message:'Selecciona la fecha.'}); }
-  if(!hora_inicio){ errors.push('Selecciona la hora de inicio.'); fieldErrs.push({name:'hora_inicio', message:'Selecciona la hora de inicio.'}); }
-  if(!hora_fin){ errors.push('Selecciona la hora de fin.'); fieldErrs.push({name:'hora_fin', message:'Selecciona la hora de fin.'}); }
-  if(fecha && fecha < todayISO()){ errors.push('La fecha no puede estar en el pasado.'); fieldErrs.push({name:'fecha', message:'Elige una fecha futura.'}); }
-  if(!loc){ errors.push('Selecciona el municipio.'); fieldErrs.push({name:'localidad', message:'Selecciona un municipio.'}); }
-  if(!direccion || direccion.length < 8){ errors.push('Dirección: escribe una dirección más detallada (mínimo 8 caracteres).'); fieldErrs.push({name:'direccion', message:'Escribe una dirección más detallada (≥ 8 caracteres).'}); }
-  if(!(invitados >= 1 && invitados <= 500)){ errors.push('Invitados: debe ser entre 1 y 500.'); fieldErrs.push({name:'invitados', message:'Debe estar entre 1 y 500.'}); }
-
-  // Validación para tipo de evento y tipo_otro
-  const tipo = (data.get('tipo') || '').trim();
-  const tipo_otro = (data.get('tipo_otro') || '').trim();
-  if (!tipo) {
-    errors.push('Selecciona un tipo de evento.');
-    fieldErrs.push({ name: 'tipo', message: 'Selecciona un tipo de evento.' });
-  }
-  if (tipo === 'Otro' && !tipo_otro) {
-    errors.push('Especifica el tipo de evento.');
-    fieldErrs.push({ name: 'tipo_otro', message: 'Especifica el tipo de evento.' });
-  }
-
- // Validar horario + calcular horas de servicio
-let computedHours = null;
-if (hora_inicio && hora_fin) {
-  computedHours = computeServiceHours(hora_inicio, hora_fin);
-  if (!computedHours) {
-    errors.push('Horario: la hora de fin debe ser posterior a la hora de inicio (máx. 12 horas).');
-    fieldErrs.push({ name:'hora_fin', message:'La hora de fin debe ser posterior al inicio (máx. 12 horas).' });
-  }
-}
-
-// Guardar horas_servicio en el payload (hidden input)
-if (computedHours) {
-  data.set('horas_servicio', String(computedHours));
-}
-
-  // Normalizar teléfono en el payload
-  data.set('telefono', tel);
-
-data.set('hora_inicio', hora_inicio);
-data.set('hora_fin', hora_fin);
-
-  // Pintar errores por campo
   fieldErrs.forEach(fe => setFieldError(form, fe.name, fe.message));
+  showErrors(fieldErrs.map(fe => fe.message));
 
-  // Mostrar bloque de errores general
-  showErrors(errors);
-
-  // Enfocar el primer campo inválido
   if (fieldErrs.length){
     const first = getFieldEl(form, fieldErrs[0].name);
     if (first && typeof first.focus === 'function'){
@@ -264,8 +331,30 @@ data.set('hora_fin', hora_fin);
       }
     }
   }
+  return fieldErrs;
+}
 
-  return { ok: errors.length === 0, spam:false, data };
+function validateForm(form){
+  const data = new FormData(form);
+
+  const hp = (data.get('website') || '').trim();
+  if(hp){
+    console.warn('Honeypot activado; bloqueo de envío.');
+    return { ok:false, spam:true, data };
+  }
+
+  const errs = runValidators(form, data, ALL_VALIDATED_FIELDS);
+
+  // Normalizaciones del payload (solo si vamos a enviar)
+  const hora_inicio = (data.get('hora_inicio') || '').trim();
+  const hora_fin    = (data.get('hora_fin') || '').trim();
+  const computedHours = computeServiceHours(hora_inicio, hora_fin);
+  if (computedHours) data.set('horas_servicio', String(computedHours));
+  data.set('telefono', normalizePhone((data.get('telefono')||'').trim()));
+  data.set('hora_inicio', hora_inicio);
+  data.set('hora_fin', hora_fin);
+
+  return { ok: errs.length === 0, spam:false, data, firstErrorField: errs[0]?.name };
 }
 
 
@@ -293,21 +382,38 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fechaInput) fechaInput.min = todayISO();
 });
 
-// Auto-calcular horas_servicio (hidden) basado en inicio + fin
+// Hora de fin auto-calculada: inicio + horas de servicio (del stepper).
+// Si el usuario edita el fin manualmente (endTouched), dejamos de pisarla y
+// pasamos a recalcular horas_servicio a partir de inicio+fin.
 document.addEventListener('DOMContentLoaded', () => {
   const startEl = document.querySelector('input[name="hora_inicio"]');
   const endEl   = document.querySelector('input[name="hora_fin"]');
   const hrsEl   = document.querySelector('input[name="horas_servicio"]');
-
   if (!startEl || !endEl || !hrsEl) return;
 
-  function recomputeHours(){
-    const hrs = computeServiceHours(startEl.value, endEl.value);
-    hrsEl.value = hrs ? String(hrs) : '';
+  let endTouched = false;
+
+  function autofillEnd(){
+    if (endTouched) return;
+    const start = startEl.value;
+    const hrs = parseInt(hrsEl.value || '0', 10);
+    if (!start || !(hrs >= 1 && hrs <= 12)) return;
+    const [h, m] = start.split(':').map(Number);
+    if ([h, m].some(Number.isNaN)) return;
+    const total = ((h * 60 + m) + hrs * 60) % (24 * 60);
+    endEl.value = `${String(Math.floor(total / 60)).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}`;
   }
 
-  startEl.addEventListener('change', recomputeHours);
-  endEl.addEventListener('change', recomputeHours);
+  startEl.addEventListener('change', autofillEnd);
+  hrsEl.addEventListener('change', autofillEnd);
+  endEl.addEventListener('change', () => {
+    endTouched = true;
+    const hrs = computeServiceHours(startEl.value, endEl.value);
+    if (hrs) {
+      hrsEl.value = String(hrs);
+      hrsEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
 });
 
 function buildMessage(formData){
@@ -329,7 +435,42 @@ function buildMessage(formData){
          `Dirección: ${formData.get('direccion')}\n` +
          `Tipo de evento: ${tipoFinal}\n` +
          `Invitados: ${formData.get('invitados')}\n` +
-         `Mensaje: ${formData.get('mensaje') || '—'}`;
+         buildExtrasBlock(formData) +
+         `Mensaje: ${(formData.get('mensaje') || '—').toString().slice(0, 500)}`;
+}
+
+// Bloques opcionales de logística y menú para el mensaje (solo lo que tenga valor)
+function buildExtrasBlock(formData){
+  const val = (n) => (formData.get(n) || '').toString().trim();
+  const multi = (n) => formData.getAll(n).map(v => String(v).trim()).filter(Boolean).join(', ');
+
+  const logistica = [
+    ['Ambiente', val('ambiente')],
+    ['Acceso', val('acceso')],
+    ['Corriente', val('corriente')],
+    ['Estacionamiento', val('estacionamiento')]
+  ].filter(([,v]) => v);
+
+  const menu = [
+    ['Calientes', multi('menu_calientes')],
+    ['Frías', multi('menu_frias')],
+    ['Cócteles de café', multi('menu_licor')],
+    ['Sabores', multi('sabores')],
+    ['Leches', multi('leches')]
+  ].filter(([,v]) => v);
+
+  let out = '';
+  if (logistica.length) out += '\nLogística:\n' + logistica.map(([k,v]) => `- ${k}: ${v}`).join('\n') + '\n';
+  if (menu.length)      out += '\nMenú deseado:\n' + menu.map(([k,v]) => `- ${k}: ${v}`).join('\n') + '\n';
+  return out ? out + '\n' : '';
+}
+
+// Paso del wizard al que pertenece un campo (para saltar al primer error)
+function stepForField(name){
+  for (const [step, fields] of Object.entries(STEP_FIELDS)){
+    if (fields.includes(name)) return parseInt(step, 10);
+  }
+  return null;
 }
 
 // Handlers de envío
@@ -338,7 +479,11 @@ const formMsg = document.getElementById('formMsg');
 form?.addEventListener('submit', (e) => {
   e.preventDefault();
   const result = validateForm(form);
-  if(!result.ok) return;
+  if(!result.ok){
+    const step = stepForField(result.firstErrorField);
+    if (step && window.__wizardGoTo) window.__wizardGoTo(step, { keepErrors: true });
+    return;
+  }
   const data = result.data;
   const msg = buildMessage(data);
   saveToSheet(data);
@@ -350,7 +495,11 @@ form?.addEventListener('submit', (e) => {
 
 document.getElementById('sendEmail')?.addEventListener('click', () => {
   const result = validateForm(form);
-  if(!result.ok) return;
+  if(!result.ok){
+    const step = stepForField(result.firstErrorField);
+    if (step && window.__wizardGoTo) window.__wizardGoTo(step, { keepErrors: true });
+    return;
+  }
   const data = result.data;
   const msg = buildMessage(data);
   saveToSheet(data);
@@ -514,13 +663,7 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
 (function () {
   if (typeof window.gtag !== 'function') return; // GA no cargó
 
-  function send(name, params) {
-    try {
-      window.gtag('event', name, Object.assign({ transport_type: 'beacon' }, params || {}));
-    } catch (e) {
-      console && console.warn && console.warn('gtag failed:', e);
-    }
-  }
+  const send = trackEvent;
 
   window.addEventListener('DOMContentLoaded', function () {
     // 1) Nav clicks
@@ -574,6 +717,7 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
     function readForm() {
       if (!form) return {};
       const fd = new FormData(form);
+      const menuCount = MULTI_FIELDS.reduce((n, f) => n + fd.getAll(f).filter(Boolean).length, 0);
       return {
         form_channel: 'email', // se sobrescribe abajo
         municipio: (fd.get('localidad') || '').toString(),
@@ -583,6 +727,10 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
         start_time: (fd.get('hora_inicio') || '').toString(),
         service_hours: parseInt(fd.get('horas_servicio') || '0', 10) || 0,
         end_time: (fd.get('hora_fin') || '').toString(),
+        ambiente: (fd.get('ambiente') || '').toString(),
+        corriente: (fd.get('corriente') || '').toString(),
+        menu_items: menuCount,
+        cliente_tipo: (fd.get('cliente_tipo') || '').toString(),
       };
     }
 
@@ -609,17 +757,205 @@ document.getElementById('sendEmail')?.addEventListener('click', () => {
     }
   });
 })();
-// Mostrar/ocultar input "Otro" en tipo de evento
+// Mostrar/ocultar input "Otro" en tipo de evento (tarjetas radio)
 document.addEventListener('DOMContentLoaded', () => {
-  const tipoSel = document.querySelector('select[name="tipo"]');
+  const tipoRadios = document.querySelectorAll('input[name="tipo"]');
   const otroWrap = document.getElementById('tipoOtroWrap');
-  if (tipoSel && otroWrap) {
-    tipoSel.addEventListener('change', () => {
-      if (tipoSel.value === 'Otro') {
-        otroWrap.classList.remove('hidden');
-      } else {
-        otroWrap.classList.add('hidden');
-      }
-    });
+  if (tipoRadios.length && otroWrap) {
+    tipoRadios.forEach(r => r.addEventListener('change', () => {
+      otroWrap.classList.toggle('hidden', r.value !== 'Otro');
+      if (r.value === 'Otro') document.getElementById('tipo_otro')?.focus();
+    }));
   }
 });
+
+// ====== WIZARD DE COTIZACIÓN (5 pasos) ==================================
+(function initWizard(){
+  const form = document.getElementById('leadForm');
+  if (!form) return;
+  const steps = Array.from(form.querySelectorAll('.wizard-step'));
+  if (!steps.length) return; // página sin wizard
+
+  const TOTAL = steps.length;
+  const bar     = document.getElementById('wizardBar');
+  const label   = document.getElementById('wizardLabel');
+  const count   = document.getElementById('wizardCount');
+  const backBtn = document.getElementById('wizardBack');
+  const nextBtn = document.getElementById('wizardNext');
+  let current = 1;
+
+  // --- Render del paso de menú desde MENU_CATALOG ---
+  function renderMenu(){
+    const host = document.getElementById('menuCatalog');
+    if (!host) return;
+    host.innerHTML = MENU_CATALOG.map(cat => `
+      <div class="mt-6" data-field-group="${cat.field}">
+        <p class="block text-sm font-medium mb-1">${cat.label}</p>
+        ${cat.note ? `<p class="text-xs text-brand-text/60 mb-2">${cat.note}</p>` : ''}
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          ${cat.items.map(item => `
+            <label class="cursor-pointer">
+              <input type="checkbox" name="${cat.field}" value="${item}" class="peer sr-only" />
+              <span class="flex items-center justify-center text-center rounded-xl border-2 border-black/10 bg-brand-cream px-3 py-3 text-sm font-medium text-brand-text/80 transition hover:border-brand-green/40 peer-checked:border-brand-green peer-checked:bg-brand-green peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-gold">${item}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // --- Feedback dinámico del paso 1 (futuro slot del precio estimado) ---
+  function updateFeedback(){
+    const fb = document.getElementById('wizardFeedback');
+    if (!fb) return;
+    const inv = parseInt(form.querySelector('[name="invitados"]')?.value || '0', 10);
+    const hrs = parseInt(form.querySelector('[name="horas_servicio"]')?.value || '0', 10);
+    if (!(inv >= 1 && hrs >= 1)) { fb.hidden = true; return; }
+    const baristas = inv > 120 ? 'dos baristas' : 'un barista profesional';
+    fb.innerHTML = `☕ Para <strong>${inv} invitados</strong> durante <strong>${hrs} horas</strong>, solemos asignar <strong>${baristas}</strong> con estación completa.`;
+    fb.hidden = false;
+  }
+
+  // --- Resumen del paso 5 ---
+  function buildSummary(){
+    const host = document.getElementById('wizardSummary');
+    if (!host) return;
+    const fd = new FormData(form);
+    const val = (n) => (fd.get(n) || '').toString().trim();
+    const multi = (n) => fd.getAll(n).map(v => String(v).trim()).filter(Boolean).join(', ');
+    const tipo = val('tipo') === 'Otro' && val('tipo_otro') ? `Otro — ${val('tipo_otro')}` : val('tipo');
+    const menu = MULTI_FIELDS.map(f => multi(f)).filter(Boolean).join(' · ');
+
+    const rows = [
+      ['Evento', tipo, 1],
+      ['Invitados', val('invitados'), 1],
+      ['Fecha', val('fecha'), 2],
+      ['Horario', val('hora_inicio') && val('hora_fin') ? `${val('hora_inicio')}–${val('hora_fin')} (${val('horas_servicio')}h)` : '', 2],
+      ['Lugar', [val('localidad'), val('ambiente')].filter(Boolean).join(' · '), 3],
+      ['Menú', menu || 'Nos dejamos recomendar', 4]
+    ].filter(([,v]) => v);
+
+    host.innerHTML = rows.map(([k, v, step]) => `
+      <div class="flex items-baseline justify-between gap-3">
+        <dt class="shrink-0 font-medium text-brand-text">${k}</dt>
+        <dd class="text-right">${v}
+          <button type="button" class="wizard-edit ml-1 text-brand-green underline text-xs" data-goto="${step}">editar</button>
+        </dd>
+      </div>
+    `).join('');
+  }
+
+  // --- Navegación ---
+  function goToStep(n, opts){
+    n = Math.min(Math.max(1, n), TOTAL);
+    steps.forEach(s => { s.hidden = (parseInt(s.dataset.step, 10) !== n); });
+    current = n;
+
+    const name = steps[n-1].dataset.stepName || '';
+    if (label) label.textContent = `Paso ${n} de ${TOTAL} — ${name}`;
+    if (count) count.textContent = `${n}/${TOTAL}`;
+    if (bar)   bar.style.width = `${(n / TOTAL) * 100}%`;
+
+    // style.display (no el atributo hidden): las clases inline-flex de Tailwind
+    // tienen la misma especificidad que [hidden] y lo anulan por orden de hoja.
+    if (backBtn) backBtn.style.display = (n === 1) ? 'none' : '';
+    if (nextBtn) nextBtn.style.display = (n === TOTAL) ? 'none' : ''; // en el último paso mandan los botones de envío
+
+    if (!(opts && opts.keepErrors)) { clearAllFieldErrors(form); showErrors([]); }
+    if (n === TOTAL) buildSummary();
+
+    // En el init NO robamos foco ni scrolleamos (la página acaba de cargar)
+    if (!(opts && opts.silent)) {
+      const heading = steps[n-1].querySelector('.wizard-heading');
+      if (heading) heading.focus({ preventScroll: true });
+      steps[n-1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  // Los handlers de envío (fuera de este closure) la usan para saltar a errores
+  window.__wizardGoTo = goToStep;
+
+  function tryAdvance(){
+    const data = new FormData(form);
+    const errs = runValidators(form, data, STEP_FIELDS[current] || []);
+    if (errs.length) return;
+    trackEvent('wizard_step_complete', { step: current, step_name: steps[current-1].dataset.stepName || '' });
+    goToStep(current + 1);
+    trackEvent('wizard_step_view', { step: current, step_name: steps[current-1].dataset.stepName || '' });
+  }
+
+  nextBtn?.addEventListener('click', tryAdvance);
+  backBtn?.addEventListener('click', () => goToStep(current - 1));
+
+  // Enter en pasos 1–4 avanza en vez de enviar
+  form.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (e.target.tagName === 'TEXTAREA') return;
+    if (current < TOTAL) { e.preventDefault(); tryAdvance(); }
+  });
+
+  // Links "editar" del resumen
+  form.addEventListener('click', (e) => {
+    const btn = e.target.closest('.wizard-edit');
+    if (btn) goToStep(parseInt(btn.dataset.goto, 10));
+  });
+
+  // --- Steppers (− / +) ---
+  form.addEventListener('click', (e) => {
+    const btn = e.target.closest('.stepper-btn');
+    if (!btn) return;
+    const input = form.querySelector(`input[name="${btn.dataset.stepper}"]`);
+    if (!input) return;
+    const min = parseInt(input.min || '0', 10);
+    const max = parseInt(input.max || '999', 10);
+    const delta = parseInt(btn.dataset.delta || '1', 10);
+    const cur = parseInt(input.value || '0', 10) || 0;
+    input.value = String(Math.min(Math.max(cur + delta, min), max));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Clamp al teclear en los inputs de los steppers + feedback vivo
+  ['invitados', 'horas_servicio'].forEach(name => {
+    const input = form.querySelector(`input[name="${name}"]`);
+    input?.addEventListener('change', () => {
+      const min = parseInt(input.min || '0', 10);
+      const max = parseInt(input.max || '999', 10);
+      const cur = parseInt(input.value || '0', 10);
+      if (!Number.isNaN(cur)) input.value = String(Math.min(Math.max(cur, min), max));
+      updateFeedback();
+    });
+    input?.addEventListener('input', updateFeedback);
+  });
+
+  // --- Toggle Persona/Empresa (solo cambia label y autocomplete) ---
+  const nombreInput = document.getElementById('f-nombre');
+  const nombreLabel = document.getElementById('nombre-label');
+  form.querySelectorAll('input[name="cliente_tipo"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const empresa = r.value === 'Empresa';
+      if (nombreLabel) nombreLabel.textContent = empresa ? 'Nombre de la empresa*' : 'Nombre y Apellidos*';
+      if (nombreInput) {
+        nombreInput.setAttribute('autocomplete', empresa ? 'organization' : 'name');
+        nombreInput.placeholder = empresa ? 'Ej: Café 787 & Co.' : '';
+      }
+    });
+  });
+
+  // --- Init ---
+  renderMenu();
+  updateFeedback();
+  goToStep(1, { silent: true });
+
+  // Funnel: primer paso visto cuando la sección entra al viewport
+  const reserva = document.getElementById('reserva');
+  if (reserva && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          trackEvent('wizard_step_view', { step: 1, step_name: steps[0].dataset.stepName || '' });
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(reserva);
+  }
+})();
