@@ -76,7 +76,11 @@ const LEADS_HEADERS = [
 
   // automatización (reconciliación Stripe, recordatorios, auto-pricing, calendar)
   'estado','deposito_at','recordatorio_1','recordatorio_2',
-  'precio_sugerido','desglose','no_contactar','calendar_event_id'
+  'precio_sugerido','desglose','no_contactar','calendar_event_id',
+
+  // wizard: logística del evento + menú seleccionado
+  'ambiente','acceso','corriente','estacionamiento',
+  'menu_calientes','menu_frias','menu_licor','sabores','leches'
 ];
 
 // ====== WEB APP ======
@@ -148,7 +152,17 @@ function doPost(e) {
     utm_content:    (data.utm_content || ''),
     referrer:       (data.referrer    || ''),
     page_path:      (data.page_path   || ''),
-    estado:         'NUEVO'
+    estado:         'NUEVO',
+
+    ambiente:        clean.ambiente,
+    acceso:          clean.acceso,
+    corriente:       clean.corriente,
+    estacionamiento: clean.estacionamiento,
+    menu_calientes:  clean.menu_calientes,
+    menu_frias:      clean.menu_frias,
+    menu_licor:      clean.menu_licor,
+    sabores:         clean.sabores,
+    leches:          clean.leches
   });
 
   // 6) Emails
@@ -171,8 +185,9 @@ function validate(d) {
   const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const invitados = parseInt(d.invitados || '0', 10);
 
-  // nombre
-  if (!d.nombre || !/^[A-Za-zÁÉÍÓÚÑáéíóúñ'’\-\s]{2,60}$/.test(d.nombre.trim())) errors.push('nombre');
+  // nombre: acepta persona O empresa ("Café 787 & Co."), exige ≥2 letras
+  // (bloquea "12345"). Debe ser idéntica a la del frontend (main.js).
+  if (!d.nombre || !/^(?=(?:.*\p{L}){2})[\p{L}\p{N}&.,'’()\- ]{2,80}$/u.test(d.nombre.trim())) errors.push('nombre');
 
   // email
   if (!reEmail.test(d.email || '')) errors.push('email');
@@ -287,12 +302,25 @@ function sanitizeInput(d) {
     tipo:      safe(d.tipo),
     invitados: String(parseInt(d.invitados || '0', 10)),
     paquete:   safe(d.paquete),
-    mensaje:   safe(d.mensaje)
+    mensaje:   safe(d.mensaje),
+
+    // Campos del wizard (opcionales; llegan vacíos desde HTML viejo cacheado).
+    // Topes de largo: son texto libre en el POST aunque el form use tarjetas.
+    ambiente:        capped(d.ambiente, 40),
+    acceso:          capped(d.acceso, 60),
+    corriente:       capped(d.corriente, 60),
+    estacionamiento: capped(d.estacionamiento, 60),
+    menu_calientes:  capped(d.menu_calientes, 200),
+    menu_frias:      capped(d.menu_frias, 200),
+    menu_licor:      capped(d.menu_licor, 120),
+    sabores:         capped(d.sabores, 160),
+    leches:          capped(d.leches, 120)
   };
 }
 
 function digits(s) { return String(s || '').replace(/[^\d]/g,''); }
 function safe(v)   { return v == null ? '' : String(v).trim(); }
+function capped(v, n) { return safe(v).slice(0, n); }
 
 // Normaliza "Sí", "si", checkbox TRUE, etc.
 function normalizeYes_(v) {
@@ -455,7 +483,30 @@ const fields = [
     ['Teléfono',   lead.telefono || '—']
   ] : [];
 
+  // Logística y menú (campos del wizard). Para el admin se muestran siempre
+  // (con '—' si faltan); al cliente solo las filas con valor.
+  const logisticaAll = [
+    ['Ambiente',        lead.ambiente || '—'],
+    ['Acceso',          lead.acceso || '—'],
+    ['Corriente',       lead.corriente || '—'],
+    ['Estacionamiento', lead.estacionamiento || '—']
+  ];
+  const menuAll = [
+    ['Bebidas calientes', lead.menu_calientes || '—'],
+    ['Bebidas frías',     lead.menu_frias || '—'],
+    ['Con licor',         lead.menu_licor || '—'],
+    ['Sabores',           lead.sabores || '—'],
+    ['Leches',            lead.leches || '—']
+  ];
+  const withValue = (pairs) => pairs.filter(([,v]) => v && v !== '—');
+  const logistica = forAdmin ? logisticaAll : withValue(logisticaAll);
+  const menu      = forAdmin ? menuAll      : withValue(menuAll);
+
   // Texto simple (fallback)
+  const pairsToText = (pairs) => pairs.map(([k,v]) => `${k}: ${v}`).join('\n');
+  const logisticaText = logistica.length ? `\n\nLogística:\n${pairsToText(logistica)}` : '';
+  const menuText      = menu.length      ? `\n\nMenú solicitado:\n${pairsToText(menu)}` : '';
+
   let text = '';
   if (forAdmin) {
     text =
@@ -471,7 +522,8 @@ Hora fin: ${lead.hora_fin || '—'}
 Localidad: ${lead.localidad}
 Dirección: ${lead.direccion}
 Tipo de evento: ${lead.tipo}
-Invitados: ${lead.invitados}
+Invitados: ${lead.invitados}${logisticaText}${menuText}
+
 Mensaje: ${lead.mensaje || '—'}
 `;
   } else {
@@ -489,18 +541,26 @@ Hora fin: ${lead.hora_fin || '—'}
 Localidad: ${lead.localidad}
 Dirección: ${lead.direccion}
 Tipo de evento: ${lead.tipo}
-Invitados: ${lead.invitados}
+Invitados: ${lead.invitados}${logisticaText}${menuText}
 
 — ${COMPANY.name}`;
   }
 
   // HTML con diseño simple
-  const rows = [...adminExtra, ...fields].map(([k,v]) => `
+  const toRows = (pairs) => pairs.map(([k,v]) => `
     <tr>
       <td style="padding:10px 12px;border:1px solid #eee;background:#fafafa;width:40%;font-weight:600">${k}</td>
       <td style="padding:10px 12px;border:1px solid #eee">${escapeHtml(v)}</td>
     </tr>
   `).join('');
+  const sectionHeader = (title) => `
+    <tr>
+      <td colspan="2" style="padding:8px 12px;border:1px solid #eee;background:#0B3D2E;color:#fff;font-weight:700;font-size:13px">${title}</td>
+    </tr>
+  `;
+  const rows = toRows([...adminExtra, ...fields])
+    + (logistica.length ? sectionHeader('Logística del evento') + toRows(logistica) : '')
+    + (menu.length      ? sectionHeader('Menú solicitado')      + toRows(menu)      : '');
 
   const topMsg = forAdmin
     ? `Se recibió una nueva solicitud:`
@@ -600,9 +660,12 @@ const PUERTO_RICO_MUNICIPIOS = new Set([
  *
  * Body esperado (JSON):
  * {
-"nombre","email","telefono","fecha","hora_inicio","horas_servicio","hora_fin",
+ *   "nombre","email","telefono","fecha","hora_inicio","horas_servicio","hora_fin",
  *   "localidad","direccion","tipo","invitados","paquete","mensaje",
  *   "website" // honeypot invisible, debe llegar vacío
+ *   // Opcionales del wizard (logística + menú):
+ *   "ambiente","acceso","corriente","estacionamiento",
+ *   "menu_calientes","menu_frias","menu_licor","sabores","leches",
  *   // Opcionales de tracking (si existen en la URL o el frontend):
  *   "utm_source","utm_medium","utm_campaign","utm_term","utm_content",
  *   "referrer","page_path"
