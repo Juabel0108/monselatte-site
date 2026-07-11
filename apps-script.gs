@@ -80,7 +80,8 @@ const LEADS_HEADERS = [
 
   // wizard: logística del evento + menú seleccionado
   'ambiente','acceso','corriente','estacionamiento',
-  'menu_calientes','menu_frias','menu_licor','sabores','leches'
+  'menu_calientes','menu_frias','menu_licor','sabores','leches',
+  'fecha_fin' // eventos multi-día (vacío = un solo día)
 ];
 
 // ====== WEB APP ======
@@ -162,7 +163,8 @@ function doPost(e) {
     menu_frias:      clean.menu_frias,
     menu_licor:      clean.menu_licor,
     sabores:         clean.sabores,
-    leches:          clean.leches
+    leches:          clean.leches,
+    fecha_fin:       clean.fecha_fin
   });
 
   // 6) Emails
@@ -198,6 +200,9 @@ function validate(d) {
 
   // fecha (opcionalmente validamos formato ISO yyyy-mm-dd)
   if (!d.fecha) errors.push('fecha');
+
+  // fecha_fin (opcional, eventos multi-día): si viene, no puede ser anterior a fecha
+  if (d.fecha_fin && d.fecha && String(d.fecha_fin) < String(d.fecha)) errors.push('fecha_fin');
 
   // hora_inicio requerida
   if (!d.hora_inicio) errors.push('hora_inicio');
@@ -314,7 +319,8 @@ function sanitizeInput(d) {
     menu_frias:      capped(d.menu_frias, 200),
     menu_licor:      capped(d.menu_licor, 120),
     sabores:         capped(d.sabores, 160),
-    leches:          capped(d.leches, 120)
+    leches:          capped(d.leches, 120),
+    fecha_fin:       capped(d.fecha_fin, 20)
   };
 }
 
@@ -467,6 +473,8 @@ function composeEmail(lead, {forAdmin}) {
   // Campos listados
 const fields = [
   ['Fecha',         lead.fecha || '—'],
+  // Solo eventos multi-día (corporativos, activaciones, etc.)
+  ...(lead.fecha_fin ? [['Fecha fin', lead.fecha_fin]] : []),
   ['Hora inicio',   lead.hora_inicio || lead.hora || '—'],
   ['Horas',         lead.horas_servicio || '—'],
   ['Hora fin',      lead.hora_fin || '—'],
@@ -491,21 +499,28 @@ const fields = [
     ['Corriente',       lead.corriente || '—'],
     ['Estacionamiento', lead.estacionamiento || '—']
   ];
-  const menuAll = [
-    ['Bebidas calientes', lead.menu_calientes || '—'],
-    ['Bebidas frías',     lead.menu_frias || '—'],
-    ['Con licor',         lead.menu_licor || '—'],
-    ['Sabores',           lead.sabores || '—'],
-    ['Leches',            lead.leches || '—']
-  ];
   const withValue = (pairs) => pairs.filter(([,v]) => v && v !== '—');
+  const menuAddons = [
+    ['Iced coffees (add-on)',      lead.menu_frias || '—'],
+    ['Cócteles de café (add-on)',  lead.menu_licor || '—']
+  ];
+  // Campos de versiones anteriores del form: solo si traen valor
+  const menuLegacy = withValue([
+    ['Bebidas calientes', lead.menu_calientes || ''],
+    ['Sabores',           lead.sabores || ''],
+    ['Leches',            lead.leches || '']
+  ]);
   const logistica = forAdmin ? logisticaAll : withValue(logisticaAll);
-  const menu      = forAdmin ? menuAll      : withValue(menuAll);
+  const menu      = (forAdmin ? menuAddons : withValue(menuAddons)).concat(menuLegacy);
+
+  // El cliente ve TODO lo que incluye su paquete (el admin ya lo sabe)
+  const incluye = forAdmin ? [] : getPackageIncludes_();
 
   // Texto simple (fallback)
   const pairsToText = (pairs) => pairs.map(([k,v]) => `${k}: ${v}`).join('\n');
   const logisticaText = logistica.length ? `\n\nLogística:\n${pairsToText(logistica)}` : '';
   const menuText      = menu.length      ? `\n\nMenú solicitado:\n${pairsToText(menu)}` : '';
+  const incluyeText   = incluye.length   ? `\n\nTu paquete incluye:\n${incluye.map(i => `- ${i}`).join('\n')}` : '';
 
   let text = '';
   if (forAdmin) {
@@ -541,7 +556,7 @@ Hora fin: ${lead.hora_fin || '—'}
 Localidad: ${lead.localidad}
 Dirección: ${lead.direccion}
 Tipo de evento: ${lead.tipo}
-Invitados: ${lead.invitados}${logisticaText}${menuText}
+Invitados: ${lead.invitados}${logisticaText}${menuText}${incluyeText}
 
 — ${COMPANY.name}`;
   }
@@ -558,8 +573,19 @@ Invitados: ${lead.invitados}${logisticaText}${menuText}
       <td colspan="2" style="padding:8px 12px;border:1px solid #eee;background:#0B3D2E;color:#fff;font-weight:700;font-size:13px">${title}</td>
     </tr>
   `;
+  const incluyeRows = incluye.length ? sectionHeader('Tu paquete incluye') + `
+    <tr>
+      <td colspan="2" style="padding:10px 12px;border:1px solid #eee">
+        <ul style="margin:0;padding-left:18px">
+          ${incluye.map(i => `<li style="margin:0 0 4px 0;line-height:1.35">${escapeHtml(i)}</li>`).join('')}
+        </ul>
+      </td>
+    </tr>
+  ` : '';
+
   const rows = toRows([...adminExtra, ...fields])
     + (logistica.length ? sectionHeader('Logística del evento') + toRows(logistica) : '')
+    + incluyeRows
     + (menu.length      ? sectionHeader('Menú solicitado')      + toRows(menu)      : '');
 
   const topMsg = forAdmin
@@ -748,6 +774,23 @@ function mapRowForTemplate(r) {
     fechaCorta = '';
   }
 
+  // Eventos multi-día: la fecha del PDF se muestra como rango ("12 – 14 jul 2026")
+  if (r.fecha_fin) {
+    try {
+      const df = r.fecha_fin instanceof Date ? r.fecha_fin : new Date(r.fecha_fin);
+      if (!isNaN(df)) {
+        const ddf = Utilities.formatDate(df, tz, 'd');
+        const mmf = MESES_CORTO[df.getMonth()];
+        const yyyyf = Utilities.formatDate(df, tz, 'yyyy');
+        const finCorta = `${ddf} ${mmf} ${yyyyf}`;
+        if (fechaCorta && finCorta !== fechaCorta) {
+          fechaCorta = `${fechaCorta} – ${finCorta}`;
+          fechaBonita = fechaCorta;
+        }
+      }
+    } catch (e) { /* rango opcional; se queda la fecha simple */ }
+  }
+
   // --- HORA BONITA (12h) ---
   function hora12FromAny(val) {
     // Si viene como Date (hora), formatea; si viene como string/numero, normaliza a 12h.
@@ -813,11 +856,14 @@ const includes = getPackageIncludes_();
   };
 }
 
+// Qué incluye el paquete básico. Se usa en el PDF de cotización y en el
+// email de confirmación al cliente — si cambias el menú, edita SOLO aquí.
 function getPackageIncludes_() {
   return [
     'Baristas preparando café en el momento',
     'Máquina de espresso premium',
-    'Menú: latte, cappuccino, espresso, americano y cortado',
+    'Bebidas calientes: espresso, cortado, latte, americano y cappuccino tradicional',
+    'Sin café: chocolate caliente y chai latte',
     'Leche regular + alternativas (según disponibilidad)',
     'Sabores: vainilla, caramelo y temporada',
     'Vasos, tapas, servilletas, azúcar y montaje completo'

@@ -497,8 +497,8 @@
             <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true">
           </div>
 
-          <!-- Barra de progreso del wizard -->
-          <div class="mb-6">
+          <!-- Barra de progreso del wizard (ancla de scroll entre pasos) -->
+          <div id="wizardTop" class="mb-6 scroll-mt-24">
             <div class="flex items-center justify-between gap-3">
               <span id="wizardLabel" class="text-sm font-semibold text-brand-green" aria-live="polite">Paso 1 de 5 — Tu evento</span>
               <span id="wizardCount" class="text-sm text-brand-text/60">1/5</span>
@@ -595,6 +595,19 @@
                 <label for="f-hora-fin" class="block text-sm font-medium">Hora de fin*</label>
                 <input id="f-hora-fin" name="hora_fin" type="time" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
                 <p class="mt-1 text-xs text-brand-text/60">La calculamos por ti según las horas de servicio — ajústala si lo necesitas.</p>
+              </div>
+            </div>
+
+            <!-- Eventos multi-día (corporativos, activaciones) -->
+            <div class="mt-5">
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="multiDia" name="multi_dia" value="si" class="h-4 w-4 accent-brand-green" />
+                <span class="text-sm font-medium">Mi evento es de más de un día</span>
+              </label>
+              <div id="fechaFinWrap" class="mt-3 hidden sm:max-w-xs">
+                <label for="f-fecha-fin" class="block text-sm font-medium">Fecha de fin*</label>
+                <input id="f-fecha-fin" name="fecha_fin" type="date" class="mt-1 w-full rounded-md border border-black/10 bg-brand-cream px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-green" />
+                <p class="mt-1 text-xs text-brand-text/60">El horario aplica a cada día del evento.</p>
               </div>
             </div>
           </fieldset>
@@ -704,7 +717,8 @@
           <!-- ===== PASO 4: Tu menú (opcional) ===== -->
           <fieldset class="wizard-step" data-step="4" data-step-name="Tu menú" hidden>
             <legend class="sr-only">Tu menú</legend>
-            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">Arma tu menú <span class="text-base font-sans text-brand-text/50 font-normal">(opcional — también podemos recomendarte)</span></h3>
+            <h3 class="wizard-heading font-serif text-2xl text-brand-green" tabindex="-1">Tu menú</h3>
+            <p class="mt-1 text-sm text-brand-text/70">Esto es lo que tu paquete ya incluye. Si quieres, añade extras (tienen costo adicional).</p>
             <!-- Las tarjetas se generan desde MENU_CATALOG en main.js -->
             <div id="menuCatalog" class="mt-2"></div>
           </fieldset>
@@ -755,13 +769,24 @@
             <p class="mt-4 text-sm text-brand-text/70">Al enviar, aceptas ser contactad@ por Monselatte para coordinar tu cotización. Parte de esta información se registrará de forma segura para dar seguimiento a tu solicitud.</p>
             <p class="mt-1 text-xs text-brand-text/60">No es un compromiso. Solo para confirmar disponibilidad y enviarte la cotización.</p>
 
-            <div class="mt-5 flex flex-col sm:flex-row gap-3">
-              <button type="submit" data-channel="whatsapp" class="inline-flex items-center justify-center px-5 py-3 rounded-md bg-brand-green text-white shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por WhatsApp</button>
-              <button type="button" id="sendEmail" class="inline-flex items-center justify-center px-5 py-3 rounded-md border-2 border-brand-gold text-brand-green shadow-sm hover:-translate-y-0.5 hover:shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar por Email</button>
+            <div class="mt-5">
+              <button type="submit" data-channel="form" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-md bg-brand-green text-white font-semibold shadow hover:shadow-lg hover:scale-105 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Enviar solicitud</button>
+              <p class="mt-2 text-xs text-brand-text/60">Recibirás una confirmación por email al instante.</p>
             </div>
-            <div id="formMsg" class="text-sm text-emerald-700 mt-3 hidden">¡Gracias! Abrimos tu WhatsApp para completar el envío. Te responderemos en 24–48 h.</div>
-            <div id="saveHint" class="text-sm text-brand-text/60 mt-1 hidden">Datos registrados. Si no recibes respuesta en 24–48 h, escríbenos por WhatsApp.</div>
           </fieldset>
+
+          <!-- Panel de éxito post-envío -->
+          <div id="wizardSuccess" class="hidden py-8 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-green/10 text-3xl">✅</div>
+            <h3 class="wizard-heading mt-4 font-serif text-2xl text-brand-green" tabindex="-1">¡Recibimos tu solicitud!</h3>
+            <p class="mt-3 text-brand-text/80 max-w-md mx-auto">Nos comunicaremos contigo en <strong>24–48 horas</strong> con tu cotización. Ya te enviamos una confirmación por email con el resumen de tu evento.</p>
+            <p class="mt-2 text-xs text-brand-text/60">Si no ves nuestro email, revisa la carpeta de spam o promociones.</p>
+            <div class="mt-6">
+              <a id="successWhatsApp" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md border-2 border-brand-green text-brand-green font-semibold hover:bg-brand-green hover:text-white transition">
+                ¿Prefieres adelantar por WhatsApp? Escríbenos
+              </a>
+            </div>
+          </div>
 
           <!-- Navegación del wizard -->
           <div class="mt-8 flex items-center justify-between gap-3">

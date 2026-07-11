@@ -32,35 +32,28 @@ function trackEvent(name, params) {
 }
 
 // --- Menú del wizard (EDITABLE POR EL DUEÑO) ---------------------------
-// Cada categoría genera tarjetas checkbox en el paso 4. `field` es el nombre
-// que viaja al Sheet/emails (si añades una categoría nueva, agrégala también
-// a LEADS_HEADERS y sanitizeInput en apps-script.gs).
+// MENU_INCLUDED se muestra como "tu paquete ya lo incluye" (no seleccionable).
+// MENU_CATALOG genera tarjetas checkbox de ADD-ONS con costo adicional.
+// Si añades una categoría nueva, agrégala también a LEADS_HEADERS y
+// sanitizeInput en apps-script.gs.
+const MENU_INCLUDED = [
+  'Espresso', 'Cortado', 'Latte', 'Americano', 'Cappuccino tradicional',
+  'Chocolate caliente', 'Chai latte',
+  'Sabores: vainilla, caramelo y temporada',
+  'Leche regular + alternativas'
+];
 const MENU_CATALOG = [
   {
-    field: 'menu_calientes',
-    label: 'Bebidas calientes',
-    items: ['Espresso', 'Americano', 'Latte', 'Cappuccino', 'Cortado', 'Mocha', 'Chocolate caliente']
-  },
-  {
     field: 'menu_frias',
-    label: 'Bebidas frías',
-    items: ['Iced latte', 'Iced americano', 'Cold brew', 'Iced chai']
+    label: 'Iced coffees',
+    note: 'Add-on con costo adicional.',
+    items: ['Iced latte', 'Iced americano']
   },
   {
     field: 'menu_licor',
-    label: 'Cócteles de café (add-on)',
-    note: 'Con licor incluido por Monselatte — para eventos 21+.',
+    label: 'Cócteles de café',
+    note: 'Add-on con costo adicional — licor incluido por Monselatte, para eventos 21+.',
     items: ['Espresso martini', 'Carajillo']
-  },
-  {
-    field: 'sabores',
-    label: 'Sabores',
-    items: ['Vainilla', 'Caramelo', 'Salted caramel', 'Avellana', 'Sabor de temporada']
-  },
-  {
-    field: 'leches',
-    label: 'Leches',
-    items: ['Regular', 'Oat', 'Almendra']
   }
 ];
 
@@ -257,6 +250,13 @@ const FIELD_VALIDATORS = {
     if (v < todayISO()) return 'Elige una fecha futura.';
     return null;
   },
+  fecha_fin(d){
+    const multi = (d.get('multi_dia')||'').trim();
+    const fin   = (d.get('fecha_fin')||'').trim();
+    if (multi && !fin) return 'Selecciona la fecha de fin de tu evento.';
+    if (fin && fin < (d.get('fecha')||'').trim()) return 'La fecha de fin no puede ser anterior a la de inicio.';
+    return null;
+  },
   hora_inicio(d){
     return (d.get('hora_inicio')||'').trim() ? null : 'Selecciona la hora de inicio.';
   },
@@ -300,7 +300,7 @@ const FIELD_VALIDATORS = {
 // Qué campos valida cada paso del wizard
 const STEP_FIELDS = {
   1: ['tipo', 'tipo_otro', 'invitados', 'horas_servicio'],
-  2: ['fecha', 'hora_inicio', 'hora_fin'],
+  2: ['fecha', 'fecha_fin', 'hora_inicio', 'hora_fin'],
   3: ['localidad', 'direccion', 'ambiente'],
   4: [], // menú es opcional
   5: ['nombre', 'email', 'telefono']
@@ -416,6 +416,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Eventos multi-día: el checkbox muestra/oculta la fecha de fin
+document.addEventListener('DOMContentLoaded', () => {
+  const multi = document.getElementById('multiDia');
+  const wrap  = document.getElementById('fechaFinWrap');
+  const fin   = document.querySelector('input[name="fecha_fin"]');
+  const fecha = document.querySelector('input[name="fecha"]');
+  if (!multi || !wrap || !fin) return;
+
+  multi.addEventListener('change', () => {
+    wrap.classList.toggle('hidden', !multi.checked);
+    if (multi.checked) {
+      fin.min = fecha?.value || todayISO();
+      fin.focus();
+    } else {
+      fin.value = ''; // si desmarca, el evento vuelve a ser de un día
+    }
+  });
+  fecha?.addEventListener('change', () => { fin.min = fecha.value || todayISO(); });
+});
+
 function buildMessage(formData){
   const tipo = (formData.get('tipo') || '').toString().trim();
   const tipoOtro = (formData.get('tipo_otro') || '').toString().trim();
@@ -428,6 +448,7 @@ function buildMessage(formData){
          `Email: ${formData.get('email')}\n` +
          `Teléfono: ${formData.get('telefono')}\n` +
          `Fecha: ${formData.get('fecha')}\n` +
+         ((formData.get('fecha_fin') || '').toString().trim() ? `Fecha fin: ${formData.get('fecha_fin')}\n` : '') +
          `Hora de inicio: ${formData.get('hora_inicio')}\n` +
          `Horas de servicio: ${formData.get('horas_servicio')}\n` +
          `Hora de fin: ${formData.get('hora_fin')}\n` +
@@ -452,11 +473,8 @@ function buildExtrasBlock(formData){
   ].filter(([,v]) => v);
 
   const menu = [
-    ['Calientes', multi('menu_calientes')],
-    ['Frías', multi('menu_frias')],
-    ['Cócteles de café', multi('menu_licor')],
-    ['Sabores', multi('sabores')],
-    ['Leches', multi('leches')]
+    ['Iced coffees (add-on)', multi('menu_frias')],
+    ['Cócteles de café (add-on)', multi('menu_licor')]
   ].filter(([,v]) => v);
 
   let out = '';
@@ -473,9 +491,9 @@ function stepForField(name){
   return null;
 }
 
-// Handlers de envío
+// Handler de envío: guarda en Sheets (el backend emailea la confirmación al
+// cliente) y muestra el panel de éxito. WhatsApp queda como opción en el panel.
 const form = document.getElementById('leadForm');
-const formMsg = document.getElementById('formMsg');
 form?.addEventListener('submit', (e) => {
   e.preventDefault();
   const result = validateForm(form);
@@ -485,28 +503,8 @@ form?.addEventListener('submit', (e) => {
     return;
   }
   const data = result.data;
-  const msg = buildMessage(data);
   saveToSheet(data);
-  const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
-  formMsg?.classList.remove('hidden');
-  document.getElementById('saveHint')?.classList.remove('hidden');
-});
-
-document.getElementById('sendEmail')?.addEventListener('click', () => {
-  const result = validateForm(form);
-  if(!result.ok){
-    const step = stepForField(result.firstErrorField);
-    if (step && window.__wizardGoTo) window.__wizardGoTo(step, { keepErrors: true });
-    return;
-  }
-  const data = result.data;
-  const msg = buildMessage(data);
-  saveToSheet(data);
-  const subject = 'Solicitud de cotización — Monselatte';
-  const mailto = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
-  window.location.href = mailto;
-  document.getElementById('saveHint')?.classList.remove('hidden');
+  if (window.__wizardSuccess) window.__wizardSuccess(data);
 });
 
 // --- Lightbox de galería ---
@@ -784,11 +782,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextBtn = document.getElementById('wizardNext');
   let current = 1;
 
-  // --- Render del paso de menú desde MENU_CATALOG ---
+  // --- Render del paso de menú: incluido (informativo) + add-ons (tarjetas) ---
   function renderMenu(){
     const host = document.getElementById('menuCatalog');
     if (!host) return;
-    host.innerHTML = MENU_CATALOG.map(cat => `
+    const included = `
+      <div class="mt-4 rounded-xl border border-brand-green/15 bg-brand-green/5 p-4">
+        <p class="text-sm font-semibold text-brand-green mb-2">✓ Tu paquete ya incluye</p>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-brand-text/80">
+          ${MENU_INCLUDED.map(item => `<li class="flex gap-2"><span class="text-brand-green">✓</span><span>${item}</span></li>`).join('')}
+        </ul>
+      </div>
+    `;
+    host.innerHTML = included + MENU_CATALOG.map(cat => `
       <div class="mt-6" data-field-group="${cat.field}">
         <p class="block text-sm font-medium mb-1">${cat.label}</p>
         ${cat.note ? `<p class="text-xs text-brand-text/60 mb-2">${cat.note}</p>` : ''}
@@ -824,15 +830,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = (n) => (fd.get(n) || '').toString().trim();
     const multi = (n) => fd.getAll(n).map(v => String(v).trim()).filter(Boolean).join(', ');
     const tipo = val('tipo') === 'Otro' && val('tipo_otro') ? `Otro — ${val('tipo_otro')}` : val('tipo');
-    const menu = MULTI_FIELDS.map(f => multi(f)).filter(Boolean).join(' · ');
+    const adds = MULTI_FIELDS.map(f => multi(f)).filter(Boolean).join(' · ');
+    const fecha = val('fecha_fin') ? `${val('fecha')} → ${val('fecha_fin')}` : val('fecha');
 
     const rows = [
       ['Evento', tipo, 1],
       ['Invitados', val('invitados'), 1],
-      ['Fecha', val('fecha'), 2],
+      ['Fecha', fecha, 2],
       ['Horario', val('hora_inicio') && val('hora_fin') ? `${val('hora_inicio')}–${val('hora_fin')} (${val('horas_servicio')}h)` : '', 2],
       ['Lugar', [val('localidad'), val('ambiente')].filter(Boolean).join(' · '), 3],
-      ['Menú', menu || 'Nos dejamos recomendar', 4]
+      ['Menú', adds ? `Paquete básico + ${adds}` : 'Paquete básico', 4]
     ].filter(([,v]) => v);
 
     host.innerHTML = rows.map(([k, v, step]) => `
@@ -868,11 +875,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!(opts && opts.silent)) {
       const heading = steps[n-1].querySelector('.wizard-heading');
       if (heading) heading.focus({ preventScroll: true });
-      steps[n-1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Anclamos al tope del wizard (barra de progreso), NO al fieldset:
+      // anclar al fieldset dejaba el título/progreso fuera de pantalla y el
+      // usuario tenía que scrollear hacia arriba en cada paso.
+      const anchor = document.getElementById('wizardTop') || steps[n-1];
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
   // Los handlers de envío (fuera de este closure) la usan para saltar a errores
   window.__wizardGoTo = goToStep;
+
+  // --- Panel de éxito tras el envío ---
+  function showSuccess(formData){
+    steps.forEach(s => { s.hidden = true; });
+    if (backBtn) backBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    const top = document.getElementById('wizardTop');
+    if (top) top.style.display = 'none';
+    showErrors([]);
+
+    const panel = document.getElementById('wizardSuccess');
+    if (!panel) return;
+    const wa = document.getElementById('successWhatsApp');
+    if (wa) wa.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(buildMessage(formData))}`;
+    panel.classList.remove('hidden');
+    const heading = panel.querySelector('.wizard-heading');
+    if (heading) heading.focus({ preventScroll: true });
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    trackEvent('wizard_success_view', {});
+  }
+  window.__wizardSuccess = showSuccess;
 
   function tryAdvance(){
     const data = new FormData(form);
