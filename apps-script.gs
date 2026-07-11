@@ -118,37 +118,38 @@ function doPost(e) {
   }
 
   // 5) Guardar en Leads
-  const ss = getOrCreateSheet(SPREADSHEET_ID, SHEET_NAME, LEADS_HEADERS);
+  const sh = getOrCreateSheet(SPREADSHEET_ID, SHEET_NAME, LEADS_HEADERS);
   const clean = sanitizeInput(data);
 
-ss.appendRow([
-  new Date(),
-  clean.nombre,
-  clean.email,
-  clean.telefono,
-  clean.fecha,
-
-  clean.hora_inicio,
-  clean.horas_servicio,
-  clean.hora_fin,
-
-  clean.localidad,
-  clean.direccion,
-  clean.tipo,
-  clean.invitados,
-  clean.paquete,
-  clean.mensaje,
-
-  '', '', '', // ✅ precio, aprobado, deposito
-
-  (data.utm_source  || ''), (data.utm_medium  || ''), (data.utm_campaign || ''),
-  (data.utm_term    || ''), (data.utm_content || ''),
-  (data.referrer    || ''), (data.page_path   || ''),
-
-  '', '', '', // nro, pdfUrl, sent_at
-
-  'NUEVO', '', '', '', '', '', '', '' // estado + resto de columnas de automatización
-]);
+  // Escribimos por NOMBRE de columna, no por posición: el Sheet ha sido editado
+  // a mano (tiene `balance` y columnas extra que el código no controla), así que
+  // un appendRow posicional desalinea los datos. appendRowByHeader_ coloca cada
+  // valor bajo su header real. Las columnas del workflow (precio, aprobado,
+  // deposito, nro, pdfUrl, sent_at, etc.) quedan vacías a propósito.
+  appendRowByHeader_(sh, {
+    timestamp:      new Date(),
+    nombre:         clean.nombre,
+    email:          clean.email,
+    telefono:       clean.telefono,
+    fecha:          clean.fecha,
+    hora_inicio:    clean.hora_inicio,
+    horas_servicio: clean.horas_servicio,
+    hora_fin:       clean.hora_fin,
+    localidad:      clean.localidad,
+    direccion:      clean.direccion,
+    tipo:           clean.tipo,
+    invitados:      clean.invitados,
+    paquete:        clean.paquete,
+    mensaje:        clean.mensaje,
+    utm_source:     (data.utm_source  || ''),
+    utm_medium:     (data.utm_medium  || ''),
+    utm_campaign:   (data.utm_campaign || ''),
+    utm_term:       (data.utm_term    || ''),
+    utm_content:    (data.utm_content || ''),
+    referrer:       (data.referrer    || ''),
+    page_path:      (data.page_path   || ''),
+    estado:         'NUEVO'
+  });
 
   // 6) Emails
   try {
@@ -224,6 +225,21 @@ function isRateLimited(data) {
 }
 
 // ====== HELPERS ======
+// Añade una fila colocando cada valor bajo la columna cuyo header coincide
+// (por nombre, case-insensitive). Inmune al orden de columnas y a columnas
+// extra en el Sheet. Las columnas sin valor en `rowMap` quedan vacías.
+function appendRowByHeader_(sh, rowMap) {
+  const lastCol = sh.getLastColumn();
+  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0]
+    .map(h => String(h).trim().toLowerCase());
+  const row = new Array(lastCol).fill('');
+  Object.keys(rowMap).forEach(key => {
+    const i = headers.indexOf(String(key).toLowerCase());
+    if (i >= 0) row[i] = rowMap[key];
+  });
+  sh.appendRow(row);
+}
+
 function getOrCreateSheet(spreadsheetId, sheetName, headers) {
   const ss = SpreadsheetApp.openById(spreadsheetId);
   let sh = ss.getSheetByName(sheetName);
