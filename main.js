@@ -991,3 +991,49 @@ document.addEventListener('DOMContentLoaded', () => {
     io.observe(reserva);
   }
 })();
+
+// ====== MINI-QUOTE (franja bajo el hero) ================================
+// Arrancador compacto: dos steppers sin `name` (no viajan en ningún payload)
+// que pre-llenan invitados/horas del wizard de #reserva y llevan al cliente
+// directo al formulario con el paso 1 ya configurado.
+(function initMiniQuote(){
+  const inv = document.getElementById('mini-invitados');
+  const hrs = document.getElementById('mini-horas');
+  const go  = document.getElementById('miniQuoteGo');
+  if (!inv || !hrs || !go) return;
+
+  const clamp = (input) => {
+    const min = parseInt(input.min || '0', 10);
+    const max = parseInt(input.max || '999', 10);
+    const cur = parseInt(input.value || '0', 10);
+    if (!Number.isNaN(cur)) input.value = String(Math.min(Math.max(cur, min), max));
+  };
+
+  document.querySelectorAll('.mini-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.mini);
+      if (!input) return;
+      input.value = String((parseInt(input.value || '0', 10) || 0) + parseInt(btn.dataset.delta || '1', 10));
+      clamp(input);
+    });
+  });
+  [inv, hrs].forEach(i => i.addEventListener('change', () => clamp(i)));
+
+  go.addEventListener('click', () => {
+    const copy = (val, name) => {
+      const el = document.querySelector(`#leadForm [name="${name}"]`);
+      if (el && val) {
+        el.value = val;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+    copy(inv.value, 'invitados');
+    copy(hrs.value, 'horas_servicio');
+    trackEvent('cta_click', {
+      cta: 'mini_quote',
+      guests: parseInt(inv.value, 10) || 0,
+      service_hours: parseInt(hrs.value, 10) || 0
+    });
+    // El href="#reserva" hace el scroll; el wizard queda pre-llenado.
+  });
+})();

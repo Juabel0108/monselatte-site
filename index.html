@@ -223,10 +223,10 @@
 
             <!-- Confianza (compacto) -->
             <ul class="mt-8 hero-trust text-sm text-brand-text/70 reveal" aria-label="Beneficios">
-              <li>✔ Baristas profesionales</li>
-              <li>✔ Montaje completo en tu evento</li>
-              <li>✔ Disponible en toda la isla</li>
-              <li>✔ Coordinación rápida y sencilla</li>
+              <li><span class="text-brand-gold font-bold" aria-hidden="true">—</span> Baristas profesionales</li>
+              <li><span class="text-brand-gold font-bold" aria-hidden="true">—</span> Montaje completo en tu evento</li>
+              <li><span class="text-brand-gold font-bold" aria-hidden="true">—</span> Disponible en toda la isla</li>
+              <li><span class="text-brand-gold font-bold" aria-hidden="true">—</span> Coordinación rápida y sencilla</li>
             </ul>
           </div>
 
@@ -247,6 +247,30 @@
       </div>
     </section>
 
+    <!-- MINI-QUOTE: arrancador de cotización (pre-llena el wizard de #reserva) -->
+    <div class="bg-brand-cream border-y border-black/5">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-10">
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-green/70">Cotiza en un minuto</p>
+        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm text-brand-text/70">Café para</span>
+            <button type="button" class="mini-step h-9 w-9 rounded-full border-2 border-brand-green text-brand-green text-xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-mini="mini-invitados" data-delta="-10" aria-label="Menos invitados">−</button>
+            <input id="mini-invitados" type="number" inputmode="numeric" min="1" max="500" step="1" value="50" aria-label="Cantidad de invitados" class="w-16 text-center text-2xl font-serif font-semibold text-brand-green bg-transparent border-0 border-b-2 border-brand-green/30 focus:outline-none focus:border-brand-green" />
+            <button type="button" class="mini-step h-9 w-9 rounded-full border-2 border-brand-green text-brand-green text-xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-mini="mini-invitados" data-delta="10" aria-label="Más invitados">+</button>
+            <span class="text-sm text-brand-text/70">invitados</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm text-brand-text/70">durante</span>
+            <button type="button" class="mini-step h-9 w-9 rounded-full border-2 border-brand-green text-brand-green text-xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-mini="mini-horas" data-delta="-1" aria-label="Menos horas">−</button>
+            <input id="mini-horas" type="number" inputmode="numeric" min="2" max="8" step="1" value="2" aria-label="Horas de servicio" class="w-12 text-center text-2xl font-serif font-semibold text-brand-green bg-transparent border-0 border-b-2 border-brand-green/30 focus:outline-none focus:border-brand-green" />
+            <button type="button" class="mini-step h-9 w-9 rounded-full border-2 border-brand-green text-brand-green text-xl leading-none transition hover:bg-brand-green hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold" data-mini="mini-horas" data-delta="1" aria-label="Más horas">+</button>
+            <span class="text-sm text-brand-text/70">horas</span>
+          </div>
+        </div>
+        <a id="miniQuoteGo" href="#reserva" class="shrink-0 inline-flex items-center px-6 py-3 rounded-xl bg-brand-green text-white font-medium shadow-lg hover:shadow-2xl hover:scale-[1.02] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-white">Cotizar mi evento →</a>
+      </div>
+    </div>
+
     <!-- SOBRE NOSOTROS (v2: más directo y moderno) -->
     <section id="sobre" class="bg-brand-cream scroll-mt-20 cv">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20">
@@ -262,15 +286,15 @@
 
             <ul class="mt-6 space-y-3 text-brand-text/80 reveal" aria-label="Lo que ofrecemos">
               <li class="flex gap-3">
-                <span class="mt-1">✓</span>
+                <span class="mt-1 text-brand-gold font-bold" aria-hidden="true">—</span>
                 <span>Café preparado al momento con equipo profesional.</span>
               </li>
               <li class="flex gap-3">
-                <span class="mt-1">✓</span>
+                <span class="mt-1 text-brand-gold font-bold" aria-hidden="true">—</span>
                 <span>Estética limpia y cuidada, acorde a tu evento.</span>
               </li>
               <li class="flex gap-3">
-                <span class="mt-1">✓</span>
+                <span class="mt-1 text-brand-gold font-bold" aria-hidden="true">—</span>
                 <span>Servicio organizado y fluido, de principio a fin.</span>
               </li>
             </ul>
@@ -315,9 +339,9 @@
         </p>
 
         <ul class="mt-8 max-w-2xl mx-auto space-y-4 text-left text-brand-text/80 reveal">
-          <li class="flex gap-3"><span>✓</span><span>Barista profesional en tu evento</span></li>
-          <li class="flex gap-3"><span>✓</span><span>Menú de espresso y bebidas especiales</span></li>
-          <li class="flex gap-3"><span>✓</span><span>Sabores clásicos y de temporada</span></li>
+          <li class="flex gap-3"><span class="text-brand-gold font-bold" aria-hidden="true">—</span><span>Barista profesional en tu evento</span></li>
+          <li class="flex gap-3"><span class="text-brand-gold font-bold" aria-hidden="true">—</span><span>Menú de espresso y bebidas especiales</span></li>
+          <li class="flex gap-3"><span class="text-brand-gold font-bold" aria-hidden="true">—</span><span>Sabores clásicos y de temporada</span></li>
         </ul>
 
         <p class="mt-6 text-sm text-brand-text/60 reveal">
@@ -1017,6 +1041,6 @@
     </div>
   </footer>
 
-  <script defer src="main.js?v=wizard3"></script>
+  <script defer src="main.js?v=wizard4"></script>
 </body>
 </html>
