@@ -67,6 +67,13 @@ const LEADS_HEADERS = [
   // ✅ en este orden (como tu Sheet)
   'precio','aprobado','deposito',
 
+  // precios y cantidades definidos manualmente antes de aprobar
+  'precio_barra',
+  'cantidad_bebidas_frias','precio_bebidas_frias',
+  'cantidad_matcha','precio_matcha',
+  'cantidad_espresso_martini','precio_espresso_martini',
+  'cantidad_carajillo','precio_carajillo','total_calculado',
+
   // tracking
   'utm_source','utm_medium','utm_campaign','utm_term','utm_content',
   'referrer','page_path',
@@ -708,6 +715,11 @@ function getNextMonthlySeq_(yymm) {
 function mapRowForTemplate(r) {
   const moneyFmt = new Intl.NumberFormat('es-PR', { style:'currency', currency:'USD', minimumFractionDigits:2 });
   const money = (n)=> (isFinite(n) ? moneyFmt.format(Number(n)) : '—');
+  const moneyOrDash = (value) => {
+    const raw = String(value ?? '').trim();
+    const amount = Number(raw);
+    return raw !== '' && isFinite(amount) ? moneyFmt.format(amount) : '—';
+  };
   const precio   = Number(r.precio || 0);
   const depositoPagado   = Number(r.deposito || 0);
   const depositoMostrado = depositoPagado > 0 ? depositoPagado : FIXED_DEPOSIT_AMOUNT;
@@ -798,6 +810,54 @@ const horaFinBonita    = hora12FromAny(r.hora_fin);
   // --- INCLUDES POR PAQUETE ---
 const includes = getPackageIncludes_();
 
+  // --- PARTIDAS DEFINIDAS MANUALMENTE ---
+  // `precio` continúa siendo el total final. Estas partidas solo muestran el
+  // desglose que el dueño escribió en el Sheet; no calculan ni alteran precios.
+  const selected = (value, label) => String(value || '').toLowerCase().includes(label.toLowerCase());
+  const beverageQty = (value) => {
+    const qty = String(value ?? '').trim();
+    return qty ? `${qty} bebidas` : '—';
+  };
+  const lineItems = [{
+    label: 'Barra de café',
+    quantity: `${r.invitados || '—'} invitados · ${r.horas_servicio || '—'} horas`,
+    includes: includes,
+    price: moneyOrDash(r.precio_barra)
+  }];
+
+  if (String(r.menu_frias || '').trim()) {
+    lineItems.push({
+      label: 'Bebidas frías',
+      quantity: beverageQty(r.cantidad_bebidas_frias),
+      includes: ['Menú de bebidas frías solicitado'],
+      price: moneyOrDash(r.precio_bebidas_frias)
+    });
+  }
+  if (String(r.menu_matcha || '').trim()) {
+    lineItems.push({
+      label: 'Matcha',
+      quantity: beverageQty(r.cantidad_matcha),
+      includes: ['Matcha caliente o frío'],
+      price: moneyOrDash(r.precio_matcha)
+    });
+  }
+  if (selected(r.menu_licor, 'Espresso martini')) {
+    lineItems.push({
+      label: 'Espresso martini',
+      quantity: beverageQty(r.cantidad_espresso_martini),
+      includes: ['Cóctel de café solicitado'],
+      price: moneyOrDash(r.precio_espresso_martini)
+    });
+  }
+  if (selected(r.menu_licor, 'Carajillo')) {
+    lineItems.push({
+      label: 'Carajillo',
+      quantity: beverageQty(r.cantidad_carajillo),
+      includes: ['Cóctel de café solicitado'],
+      price: moneyOrDash(r.precio_carajillo)
+    });
+  }
+
   // --- LOGO COMO DATA URL PNG (forzado a PNG para que renderice) ---
   let logo = '';
   try {
@@ -829,6 +889,7 @@ const includes = getPackageIncludes_();
     fechaBonita: fechaBonita || String(r.fecha || ''),
     fechaCorta:  fechaCorta || '',
     includes:   includes,
+    lineItems:  lineItems,
     isInvoice:  isInvoice,
     docTitle:   docTitle,
     docLabel:   docLabel,
@@ -860,25 +921,45 @@ function quoteTemplateHtml() {
 <meta charset="utf-8">
 <title><?= data.docTitle ?></title>
 <style>
+  @page{ size:A4; margin:10mm; }
   *{ box-sizing:border-box; font-family: Inter, Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body{ margin:0; padding:24px; color:#111; }
-  .card{ border:1px solid #E5E7EB; border-radius:16px; overflow:hidden }
-  .header{ display:flex; gap:16px; align-items:center; padding:16px 20px; background:#F3F4F6; }
+  body{ margin:0; padding:0; color:#111; font-size:13.5px; }
+  .card{ border:1px solid #E5E7EB; border-radius:12px; overflow:hidden }
+  .header{ display:flex; gap:14px; align-items:center; padding:12px 16px; background:#F3F4F6; }
+  .header img{ width:44px; height:44px; }
+  .content{ padding:12px 16px; }
   .brand{ font-weight:800; font-size:16px }
-  .muted{ color:#6B7280; font-size:12.5px }
-  .docLabel{ font-size:11px; font-weight:800; color:#6B7280; letter-spacing:1px; text-transform:uppercase }
-  .docTitle{ margin:0; font-size:22px; line-height:1.2; letter-spacing:-0.2px; font-weight:800; color:#111827 }
-  .badge{ display:inline-block; background:#214d45; color:#fff; padding:4px 10px; border-radius:999px; font-weight:800; font-size:12px; letter-spacing:0.4px; vertical-align:middle }
+  .muted{ color:#6B7280; font-size:12px }
+  .docLabel{ font-size:10px; font-weight:800; color:#6B7280; letter-spacing:1px; text-transform:uppercase }
+  .docTitle{ margin:0; font-size:21px; line-height:1.15; letter-spacing:-0.2px; font-weight:800; color:#111827 }
+  .badge{ display:inline-block; background:#214d45; color:#fff; padding:4px 9px; border-radius:999px; font-weight:800; font-size:11px; letter-spacing:0.4px; vertical-align:middle }
   .metaBlock{ font-weight:700; text-align:right; line-height:1.35; padding-top:2px }
   .metaLine{ white-space:nowrap }
-  table{ width:100%; border-collapse:collapse; margin-top:12px }
-  th, td{ border:1px solid #E5E7EB; padding:10px 12px; vertical-align:top }
+  table{ width:100%; border-collapse:collapse; margin-top:8px }
+  th, td{ border:1px solid #E5E7EB; padding:8px 10px; vertical-align:top }
   th{ text-align:left }
   .green{ background:#214d45; color:#fff }
   .totals td{ font-weight:700 }
+  .clientGrid table{ margin-top:0; }
+  .services{ break-inside:auto; page-break-inside:auto; }
+  .services tr{ break-inside:avoid; page-break-inside:avoid; }
+  .includesText{ line-height:1.25; }
+  .includesText span:not(:last-child)::after{ content:' · '; font-weight:700; color:#214d45; }
+  .closing{ break-inside:avoid; page-break-inside:avoid; }
+  body.compact{ font-size:12px; }
+  body.compact .header{ gap:12px; padding:10px 14px; }
+  body.compact .header img{ width:40px; height:40px; }
+  body.compact .content{ padding:10px 14px; }
+  body.compact .brand{ font-size:15px; }
+  body.compact .muted{ font-size:11px; }
+  body.compact .docLabel{ font-size:9px; }
+  body.compact .docTitle{ font-size:19px; }
+  body.compact .badge{ padding:3px 8px; font-size:10px; }
+  body.compact th, body.compact td{ padding:6px 8px; }
+  body.compact .includesText{ line-height:1.2; }
 </style>
 </head>
-<body>
+<body class="<?= data.lineItems.length >= 4 ? 'compact' : '' ?>">
   <div class="card">
     <div class="header">
       <img src="<?!= data.logo ?>" alt="logo" width="48" height="48" style="border-radius:10px;object-fit:contain"/>
@@ -888,7 +969,7 @@ function quoteTemplateHtml() {
       </div>
     </div>
 
-    <div style="padding:16px 20px">
+    <div class="content">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
     <div style="min-width:340px">
       <div class="docLabel"><?= data.docLabel ?></div>
@@ -910,7 +991,7 @@ function quoteTemplateHtml() {
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+  <div class="clientGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
         <div>
           <table>
             <tr><th style="width:40%">Cliente</th><td><?= data.nombre ?></td></tr>
@@ -928,26 +1009,33 @@ function quoteTemplateHtml() {
         </div>
       </div>
 
-      <table style="margin-top:16px">
+      <table class="services" style="margin-top:10px">
         <tr>
-          <th class="green" style="width:28%">Barra de café</th>
-          <th class="green">Incluye:</th>
-          <th class="green" style="width:18%">Precio</th>
+          <th class="green" style="width:22%">Servicio</th>
+          <th class="green" style="width:18%">Cantidad</th>
+          <th class="green">Incluye</th>
+          <th class="green" style="width:16%">Precio</th>
         </tr>
+        <? for (var itemIndex = 0; itemIndex < data.lineItems.length; itemIndex++) {
+             var item = data.lineItems[itemIndex]; ?>
         <tr>
-          <td><?= data.paquete ?></td>
+          <td style="font-weight:700"><?= item.label ?></td>
+          <td><?= item.quantity ?></td>
           <td>
-            <ul style="margin:0;padding-left:16px">
-             <? for (var i=0; i < data.includes.length; i++) { ?>
-              <li style="margin:0 0 4px 0;line-height:1.25"><?!= data.includes[i] ?></li>
+            <div class="includesText">
+             <? for (var detailIndex = 0; detailIndex < item.includes.length; detailIndex++) { ?>
+              <span><?= item.includes[detailIndex] ?></span>
              <? } ?>
-          </ul>
+            </div>
           </td>
-          <td style="text-align:right;font-weight:700"><?= data.precio ?></td>
+          <td style="text-align:right;font-weight:700;white-space:nowrap"><?= item.price ?></td>
         </tr>
+        <? } ?>
       </table>
 
-      <table style="margin-top:12px">
+      <div class="closing">
+      <table style="margin-top:8px">
+        <tr class="totals"><th>Precio total</th><td><?= data.precio ?></td></tr>
         <tr><th>Depósito para reservar</th><td><?= data.deposito ?></td></tr>
         <tr class="totals"><th>Balance restante</th><td><?= data.balance ?></td></tr>
       </table>
@@ -967,7 +1055,8 @@ function quoteTemplateHtml() {
         <strong>Métodos de pago:</strong> Efectivo · ATH Móvil · Tarjetas de débito/crédito
       </div>
 
-      <div class="muted" style="margin-top:12px">*Esta cotización es preliminar y está sujeta a confirmación de logística y distancia.</div>
+      <div class="muted" style="margin-top:8px">*Esta cotización es preliminar y está sujeta a confirmación de logística y distancia.</div>
+      </div>
     </div> <!-- cierre padding -->
   </div>   <!-- cierre card -->
 </body>
@@ -998,7 +1087,10 @@ function sendQuoteEmail(row, pdfFile, isUpdate) {
   const subject = isUpdate
     ? `Actualización de tu ${docWordTitle} ${row.nro || ''}`
     : `${docWordTitle} ${row.nro || ''}`;
-  if (!row.email) return;
+  const recipient = String(row.email || '').trim();
+  if (!recipient) {
+    throw new Error(`sendQuoteEmail: destinatario vacío para ${row.nro || 'sin-nro'}`);
+  }
 
   // Normaliza entradas: aceptamos un DriveFile o {file,url}
   let fileObj = null;
@@ -1101,10 +1193,66 @@ function sendQuoteEmail(row, pdfFile, isUpdate) {
     pushUnique(blob);
   }
   if (!isUpdate && TERMS_PDF_ID) {
-    try { pushUnique(DriveApp.getFileById(TERMS_PDF_ID).getBlob()); } catch(e) {}
+    try {
+      pushUnique(DriveApp.getFileById(TERMS_PDF_ID).getBlob());
+    } catch (err) {
+      console.error('TERMS_ATTACHMENT_FAILED ' + JSON.stringify({
+        quoteNumber: row.nro || '',
+        termsFileId: TERMS_PDF_ID,
+        errorName: err && err.name,
+        errorMessage: err && err.message,
+        stack: err && err.stack
+      }));
+      throw err;
+    }
   }
 
-  GmailApp.sendEmail(row.email, subject, plain, options);
+  const attachmentDetails = options.attachments.map((blob, index) => ({
+    index,
+    name: blob.getName(),
+    contentType: blob.getContentType(),
+    bytes: blob.getBytes().length
+  }));
+  const totalAttachmentBytes = attachmentDetails.reduce((total, item) => total + item.bytes, 0);
+  const diagnostic = {
+    quoteNumber: row.nro || '',
+    effectiveUser: Session.getEffectiveUser().getEmail(),
+    activeUser: Session.getActiveUser().getEmail(),
+    recipient,
+    subject,
+    attachmentCount: attachmentDetails.length,
+    totalAttachmentBytes,
+    attachments: attachmentDetails,
+    remainingDailyQuota: MailApp.getRemainingDailyQuota()
+  };
+
+  console.log('QUOTE_EMAIL_ATTEMPT ' + JSON.stringify(diagnostic));
+  try {
+    GmailApp.sendEmail(recipient, subject, plain, options);
+    console.log('QUOTE_EMAIL_ACCEPTED ' + JSON.stringify(diagnostic));
+    return {
+      sent: true,
+      recipient,
+      subject,
+      attachmentCount: attachmentDetails.length,
+      totalAttachmentBytes
+    };
+  } catch (err) {
+    console.error('QUOTE_EMAIL_FAILED ' + JSON.stringify({
+      quoteNumber: diagnostic.quoteNumber,
+      effectiveUser: diagnostic.effectiveUser,
+      activeUser: diagnostic.activeUser,
+      recipient: diagnostic.recipient,
+      subject: diagnostic.subject,
+      attachmentCount: diagnostic.attachmentCount,
+      totalAttachmentBytes: diagnostic.totalAttachmentBytes,
+      remainingDailyQuota: diagnostic.remainingDailyQuota,
+      errorName: err && err.name,
+      errorMessage: err && err.message,
+      stack: err && err.stack
+    }));
+    throw err;
+  }
 }
 
 /**
@@ -1190,10 +1338,22 @@ function onLeadChange() {
       // Envía email
       let emailSent = false;
       try {
-        sendQuoteEmail(lead, pdfInfo, false);
-        emailSent = true;
+        const result = sendQuoteEmail(lead, pdfInfo, false);
+        emailSent = !!(result && result.sent === true);
+        if (!emailSent) throw new Error(`sendQuoteEmail no confirmó el envío de ${lead.nro || 'sin-nro'}`);
       } catch (e) {
-        // continúa; igualmente guardamos el link
+        // El PDF ya existe: sustituye PROCESSING por su URL antes de propagar
+        // el fallo de correo, para no dejar la fila bloqueada.
+        if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue(pdfInfo && pdfInfo.url ? pdfInfo.url : '');
+        console.error('QUOTE_WORKFLOW_FAILED ' + JSON.stringify({
+          row: i + 2,
+          quoteNumber: lead.nro || '',
+          recipient: lead.email || '',
+          errorName: e && e.name,
+          errorMessage: e && e.message,
+          stack: e && e.stack
+        }));
+        throw e;
       }
 
       // Escribe de forma explícita por columna (evita desalinear si no son contiguas)
@@ -1269,16 +1429,68 @@ function onSheetEdit(e) {
       const pdfInfo = generateQuotePdf(lead);
       let emailSent = false;
       try {
-        sendQuoteEmail(lead, pdfInfo, true); // isUpdate = true
-        emailSent = true;
+        const result = sendQuoteEmail(lead, pdfInfo, true); // isUpdate = true
+        emailSent = !!(result && result.sent === true);
+        if (!emailSent) throw new Error(`sendQuoteEmail no confirmó el envío de ${lead.nro || 'sin-nro'}`);
       } catch (err) {
-        console.warn('sendQuoteEmail update fail:', err);
+        console.error('sendQuoteEmail update fail:', err);
+        throw err;
       }
 
       if (cPdfUrl > 0) sh.getRange(row, cPdfUrl).setValue(pdfInfo && pdfInfo.url ? pdfInfo.url : '');
       if (cSentAt > 0 && emailSent) sh.getRange(row, cSentAt).setValue(new Date());
     }
   } catch (err) {
-    console.warn('onEdit guard:', err);
+    console.error('onEdit guard:', err);
+    throw err;
   }
+}
+
+/** Prueba controlada: genera y envía exactamente una cotización por nro. */
+function diagnoseSingleQuote() {
+  const TEST_QUOTE_NUMBER = 'ML-YYMM-###'; // Reemplazar antes de ejecutar.
+  if (TEST_QUOTE_NUMBER === 'ML-YYMM-###') {
+    throw new Error('Configura TEST_QUOTE_NUMBER antes de ejecutar diagnoseSingleQuote.');
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) throw new Error(`No existe la hoja "${SHEET_NAME}".`);
+
+  const headers = sh.getRange(1, 1, 1, sh.getLastColumn())
+    .getValues()[0]
+    .map(h => String(h).trim().toLowerCase());
+  const nroIndex = headers.indexOf('nro');
+  const sentAtIndex = headers.indexOf('sent_at');
+  if (nroIndex < 0 || sentAtIndex < 0) {
+    throw new Error('Faltan las columnas nro o sent_at.');
+  }
+
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) throw new Error('No hay cotizaciones para diagnosticar.');
+  const values = sh.getRange(2, 1, lastRow - 1, sh.getLastColumn()).getValues();
+  const matches = values
+    .map((row, index) => ({ row, sheetRow: index + 2 }))
+    .filter(item => String(item.row[nroIndex]).trim() === TEST_QUOTE_NUMBER);
+  if (matches.length !== 1) {
+    throw new Error(`Se esperaba exactamente una fila para ${TEST_QUOTE_NUMBER}; se encontraron ${matches.length}.`);
+  }
+
+  const target = matches[0];
+  const lead = {};
+  headers.forEach((header, index) => { lead[header] = target.row[index]; });
+
+  const pdfInfo = generateQuotePdf(lead);
+  const result = sendQuoteEmail(lead, pdfInfo, false);
+  if (!result || result.sent !== true) {
+    throw new Error(`sendQuoteEmail no confirmó el envío de ${TEST_QUOTE_NUMBER}.`);
+  }
+
+  sh.getRange(target.sheetRow, sentAtIndex + 1).setValue(new Date());
+  console.log('SINGLE_QUOTE_TEST_COMPLETED ' + JSON.stringify({
+    row: target.sheetRow,
+    quoteNumber: TEST_QUOTE_NUMBER,
+    recipient: lead.email,
+    result
+  }));
 }
