@@ -6,7 +6,8 @@
   "scripts": {
     "build:css": "tailwindcss -i ./styles.css -o ./assets/tw.css --minify",
     "watch:css": "tailwindcss -i ./styles.css -o ./assets/tw.css --watch",
-    "build": "npm run build:css"
+    "build": "npm run build:css",
+    "test:quote": "node tests/apps-script-quote.test.js"
   },
   "repository": {
     "type": "git",

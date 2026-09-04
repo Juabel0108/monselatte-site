@@ -1256,6 +1256,282 @@ function sendQuoteEmail(row, pdfFile, isUpdate) {
 }
 
 /**
+ * Operación única y reutilizable para entregar una cotización.
+ * Genera el PDF, envía el correo y solo confirma éxito con sent === true.
+ * No escribe en la hoja: el caller conserva el control de pdfUrl y sent_at.
+ */
+function generateAndSendQuote(lead, isUpdate) {
+  if (!lead || typeof lead !== 'object') {
+    throw new Error('generateAndSendQuote requiere una cotización válida.');
+  }
+
+  let pdfInfo = null;
+  try {
+    pdfInfo = generateQuotePdf(lead);
+    const emailResult = sendQuoteEmail(lead, pdfInfo, isUpdate === true);
+    if (!emailResult || emailResult.sent !== true) {
+      throw new Error(`sendQuoteEmail no confirmó el envío de ${lead.nro || 'sin-nro'}`);
+    }
+    return { sent: true, pdfInfo, emailResult };
+  } catch (err) {
+    // Permite que el caller conserve la URL si el PDF se creó antes de fallar Gmail.
+    if (pdfInfo && pdfInfo.url) err.generatedPdfUrl = pdfInfo.url;
+    throw err;
+  }
+}
+
+/** ===== Panel administrativo privado (fase 1: solo lectura) ===== */
+function doGet() {
+  assertAdminUser_();
+  return HtmlService.createHtmlOutputFromFile('Admin')
+    .setTitle('Cotizaciones · Monselatte')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function assertAdminUser_() {
+  const allowedEmail = String(
+    PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL') || 'monselattepr@gmail.com'
+  ).trim().toLowerCase();
+  const activeEmail = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  if (!activeEmail || activeEmail !== allowedEmail) {
+    console.error('ADMIN_ACCESS_DENIED ' + JSON.stringify({ activeEmail }));
+    throw new Error('No tienes acceso al panel administrativo de Monselatte.');
+  }
+  return activeEmail;
+}
+
+/** Devuelve una bandeja limitada y sin acciones de escritura. */
+function getAdminQuoteInbox() {
+  const adminEmail = assertAdminUser_();
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  if (!sh) throw new Error(`No existe la hoja "${SHEET_NAME}".`);
+
+  const values = sh.getDataRange().getDisplayValues();
+  if (values.length < 2) return { adminEmail, quotes: [] };
+  const headers = values[0].map(header => String(header).trim().toLowerCase());
+  const wanted = [
+    'timestamp','nombre','email','telefono','fecha','hora_inicio','hora_fin',
+    'localidad','direccion','tipo','invitados','horas_servicio','menu_frias',
+    'menu_matcha','menu_licor','precio','precio_barra','cantidad_bebidas_frias',
+    'precio_bebidas_frias','cantidad_matcha','precio_matcha',
+    'cantidad_espresso_martini','precio_espresso_martini','cantidad_carajillo',
+    'precio_carajillo','total_calculado','aprobado','deposito','balance','nro',
+    'pdfurl','sent_at','estado'
+  ];
+
+  const quotes = values.slice(1).map((row, offset) => {
+    const quote = { sheetRow: offset + 2 };
+    wanted.forEach(header => {
+      const index = headers.indexOf(header);
+      quote[header] = index >= 0 ? row[index] : '';
+    });
+    quote.status = quote.sent_at
+      ? 'Enviada'
+      : (normalizeYes_(quote.aprobado) ? 'Lista para enviar' : 'Nueva');
+    return quote;
+  }).filter(quote => quote.nombre || quote.email || quote.nro)
+    .reverse()
+    .slice(0, 100);
+
+  console.log('ADMIN_INBOX_READ ' + JSON.stringify({ adminEmail, quoteCount: quotes.length }));
+  return { adminEmail, quotes };
+}
+
+/** Guarda solamente precios y cantidades; nunca aprueba ni envía. */
+function saveAdminQuoteDraft(payload) {
+  const adminEmail = assertAdminUser_();
+  if (!payload || typeof payload !== 'object') throw new Error('No se recibió una cotización para guardar.');
+
+  const sheetRow = Number(payload.sheetRow);
+  if (!Number.isInteger(sheetRow) || sheetRow < 2) throw new Error('La fila de la cotización no es válida.');
+
+  const allowedFields = [
+    'precio_barra','cantidad_bebidas_frias','precio_bebidas_frias',
+    'cantidad_matcha','precio_matcha','cantidad_espresso_martini',
+    'precio_espresso_martini','cantidad_carajillo','precio_carajillo','precio'
+  ];
+  const changes = payload.changes || {};
+  const receivedFields = Object.keys(changes);
+  const forbiddenFields = receivedFields.filter(field => !allowedFields.includes(field));
+  if (forbiddenFields.length) throw new Error(`Campos no permitidos: ${forbiddenFields.join(', ')}`);
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('El panel está procesando otro cambio. Intenta nuevamente.');
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    if (!sh) throw new Error(`No existe la hoja "${SHEET_NAME}".`);
+    if (sheetRow > sh.getLastRow()) throw new Error('La cotización ya no existe en la hoja.');
+
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+      .map(header => String(header).trim().toLowerCase());
+    const rowValues = sh.getRange(sheetRow, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
+    const valueFor = header => {
+      const index = headers.indexOf(header);
+      return index >= 0 ? String(rowValues[index] || '').trim() : '';
+    };
+
+    const expectedNro = String(payload.expectedNro || '').trim();
+    const expectedEmail = String(payload.expectedEmail || '').trim().toLowerCase();
+    if (expectedNro && valueFor('nro') !== expectedNro) throw new Error('La cotización cambió de fila. Recarga el panel.');
+    if (expectedEmail && valueFor('email').toLowerCase() !== expectedEmail) throw new Error('El cliente de esta fila cambió. Recarga el panel.');
+
+    receivedFields.forEach(field => {
+      const columnIndex = headers.indexOf(field);
+      if (columnIndex < 0) throw new Error(`Falta la columna ${field}.`);
+      const raw = String(changes[field] ?? '').trim();
+      if (raw === '') {
+        sh.getRange(sheetRow, columnIndex + 1).clearContent();
+        return;
+      }
+      const number = Number(raw.replace(/[$,\s]/g, ''));
+      if (!Number.isFinite(number) || number < 0) throw new Error(`${field} debe ser un número positivo o quedar vacío.`);
+      sh.getRange(sheetRow, columnIndex + 1).setValue(number);
+    });
+
+    SpreadsheetApp.flush();
+    const savedValues = {};
+    allowedFields.concat('total_calculado').forEach(field => {
+      const columnIndex = headers.indexOf(field);
+      savedValues[field] = columnIndex >= 0 ? sh.getRange(sheetRow, columnIndex + 1).getDisplayValue() : '';
+    });
+    console.log('ADMIN_QUOTE_DRAFT_SAVED ' + JSON.stringify({ adminEmail, sheetRow, fields: receivedFields }));
+    return { saved: true, sheetRow, values: savedValues };
+  } finally {
+    try { lock.releaseLock(); } catch (err) {}
+  }
+}
+
+/** Genera una vista previa en Drive sin enviar ni escribir estado en la hoja. */
+function previewAdminQuote(payload) {
+  const adminEmail = assertAdminUser_();
+  if (!payload || typeof payload !== 'object') throw new Error('No se recibió una cotización para previsualizar.');
+  const sheetRow = Number(payload.sheetRow);
+  if (!Number.isInteger(sheetRow) || sheetRow < 2) throw new Error('La fila de la cotización no es válida.');
+
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  if (!sh || sheetRow > sh.getLastRow()) throw new Error('La cotización ya no existe en la hoja.');
+  const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+    .map(header => String(header).trim().toLowerCase());
+  const rowValues = sh.getRange(sheetRow, 1, 1, sh.getLastColumn()).getValues()[0];
+  const lead = {};
+  headers.forEach((header, index) => { lead[header] = rowValues[index]; });
+
+  const expectedNro = String(payload.expectedNro || '').trim();
+  const expectedEmail = String(payload.expectedEmail || '').trim().toLowerCase();
+  if (expectedNro && String(lead.nro || '').trim() !== expectedNro) throw new Error('La cotización cambió de fila. Recarga el panel.');
+  if (expectedEmail && String(lead.email || '').trim().toLowerCase() !== expectedEmail) throw new Error('El cliente de esta fila cambió. Recarga el panel.');
+
+  const pdfInfo = generateQuotePdf(lead);
+  const result = {
+    created: true,
+    sheetRow,
+    quoteNumber: String(lead.nro || '').trim(),
+    fileId: pdfInfo.file.getId(),
+    url: pdfInfo.url
+  };
+  console.log('ADMIN_QUOTE_PREVIEW_CREATED ' + JSON.stringify({
+    adminEmail,
+    sheetRow,
+    quoteNumber: result.quoteNumber,
+    fileId: result.fileId
+  }));
+  return result;
+}
+
+/** Genera y envía una cotización guardada desde el panel privado. */
+function sendAdminQuote(payload) {
+  const adminEmail = assertAdminUser_();
+  if (!payload || typeof payload !== 'object') throw new Error('No se recibió una cotización para enviar.');
+
+  const sheetRow = Number(payload.sheetRow);
+  if (!Number.isInteger(sheetRow) || sheetRow < 2) throw new Error('La fila de la cotización no es válida.');
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('El panel está procesando otra cotización. Intenta nuevamente.');
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    if (!sh || sheetRow > sh.getLastRow()) throw new Error('La cotización ya no existe en la hoja.');
+
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+      .map(header => String(header).trim().toLowerCase());
+    const rowValues = sh.getRange(sheetRow, 1, 1, sh.getLastColumn()).getValues()[0];
+    const lead = {};
+    headers.forEach((header, index) => { lead[header] = rowValues[index]; });
+    const column = header => headers.indexOf(header) + 1;
+
+    const expectedNro = String(payload.expectedNro || '').trim();
+    const expectedEmail = String(payload.expectedEmail || '').trim().toLowerCase();
+    if (expectedNro && String(lead.nro || '').trim() !== expectedNro) throw new Error('La cotización cambió de fila. Recarga el panel.');
+    if (expectedEmail && String(lead.email || '').trim().toLowerCase() !== expectedEmail) throw new Error('El cliente de esta fila cambió. Recarga el panel.');
+    if (!String(lead.email || '').trim()) throw new Error('La cotización no tiene email de destinatario.');
+    if (String(lead.precio ?? '').trim() === '') throw new Error('Escribe y guarda el total oficial antes de enviar.');
+    const total = Number(String(lead.precio).replace(/[$,\s]/g, ''));
+    if (!Number.isFinite(total) || total < 0) throw new Error('El total oficial guardado no es válido.');
+
+    const pdfColumn = column('pdfurl');
+    const sentAtColumn = column('sent_at');
+    if (!pdfColumn || !sentAtColumn) throw new Error('Faltan las columnas pdfUrl o sent_at.');
+
+    const wasSent = String(lead.sent_at || '').trim() !== '';
+    if (wasSent && payload.confirmResend !== true) {
+      throw new Error('Esta cotización ya fue enviada. Confirma explícitamente si deseas enviar una actualización.');
+    }
+
+    if (!String(lead.nro || '').trim()) {
+      const nroColumn = column('nro');
+      if (!nroColumn) throw new Error('Falta la columna nro.');
+      lead.nro = buildQuoteNumber();
+      sh.getRange(sheetRow, nroColumn).setValue(lead.nro);
+    }
+
+    let delivery;
+    try {
+      delivery = generateAndSendQuote(lead, wasSent);
+    } catch (err) {
+      if (pdfColumn && err.generatedPdfUrl) sh.getRange(sheetRow, pdfColumn).setValue(err.generatedPdfUrl);
+      console.error('ADMIN_QUOTE_SEND_FAILED ' + JSON.stringify({
+        adminEmail,
+        sheetRow,
+        quoteNumber: lead.nro,
+        recipient: lead.email,
+        errorName: err && err.name,
+        errorMessage: err && err.message,
+        stack: err && err.stack
+      }));
+      throw err;
+    }
+
+    if (!delivery || delivery.sent !== true) throw new Error('El envío no devolvió una confirmación explícita.');
+    const sentAt = new Date();
+    sh.getRange(sheetRow, pdfColumn).setValue(delivery.pdfInfo.url || '');
+    sh.getRange(sheetRow, sentAtColumn).setValue(sentAt);
+    SpreadsheetApp.flush();
+
+    const result = {
+      sent: true,
+      sheetRow,
+      quoteNumber: String(lead.nro),
+      recipient: delivery.emailResult.recipient,
+      subject: delivery.emailResult.subject,
+      pdfUrl: delivery.pdfInfo.url,
+      sentAt: sh.getRange(sheetRow, sentAtColumn).getDisplayValue(),
+      wasUpdate: wasSent
+    };
+    console.log('ADMIN_QUOTE_SENT ' + JSON.stringify({
+      adminEmail,
+      sheetRow,
+      quoteNumber: result.quoteNumber,
+      recipient: result.recipient,
+      sentAt: result.sentAt,
+      wasUpdate: result.wasUpdate
+    }));
+    return result;
+  } finally {
+    try { lock.releaseLock(); } catch (err) {}
+  }
+}
+
+/**
  * Revisa la hoja "Leads" y procesa filas aprobadas sin PDF.
  * La puedes usar con un trigger "On edit" (del Spreadsheet) o con uno "Time-driven".
  */
@@ -1325,26 +1601,13 @@ function onLeadChange() {
         lead.nro = nro;
       }
 
-      // Genera PDF
-      let pdfInfo = null;
+      let delivery = null;
       try {
-        pdfInfo = generateQuotePdf(lead);
+        delivery = generateAndSendQuote(lead, false);
       } catch (e) {
-        // Limpia la marca si falló, para reintento
-        if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue('');
-        throw e;
-      }
-
-      // Envía email
-      let emailSent = false;
-      try {
-        const result = sendQuoteEmail(lead, pdfInfo, false);
-        emailSent = !!(result && result.sent === true);
-        if (!emailSent) throw new Error(`sendQuoteEmail no confirmó el envío de ${lead.nro || 'sin-nro'}`);
-      } catch (e) {
-        // El PDF ya existe: sustituye PROCESSING por su URL antes de propagar
-        // el fallo de correo, para no dejar la fila bloqueada.
-        if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue(pdfInfo && pdfInfo.url ? pdfInfo.url : '');
+        // Si Gmail falló después de crear el PDF, conserva su URL; si el PDF
+        // falló, limpia PROCESSING para permitir un reintento.
+        if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue(e.generatedPdfUrl || '');
         console.error('QUOTE_WORKFLOW_FAILED ' + JSON.stringify({
           row: i + 2,
           quoteNumber: lead.nro || '',
@@ -1357,8 +1620,8 @@ function onLeadChange() {
       }
 
       // Escribe de forma explícita por columna (evita desalinear si no son contiguas)
-      if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue(pdfInfo && pdfInfo.url ? pdfInfo.url : '');
-      if (cSentAt && emailSent) sh.getRange(i + 2, cSentAt).setValue(new Date());
+      if (cPdfUrl) sh.getRange(i + 2, cPdfUrl).setValue(delivery.pdfInfo.url || '');
+      if (cSentAt && delivery.sent === true) sh.getRange(i + 2, cSentAt).setValue(new Date());
     }
   } finally {
     try { lock.releaseLock(); } catch (e) {}
@@ -1426,19 +1689,16 @@ function onSheetEdit(e) {
       }
 
       // Genera PDF actualizado y envía email de actualización
-      const pdfInfo = generateQuotePdf(lead);
-      let emailSent = false;
+      let delivery = null;
       try {
-        const result = sendQuoteEmail(lead, pdfInfo, true); // isUpdate = true
-        emailSent = !!(result && result.sent === true);
-        if (!emailSent) throw new Error(`sendQuoteEmail no confirmó el envío de ${lead.nro || 'sin-nro'}`);
+        delivery = generateAndSendQuote(lead, true);
       } catch (err) {
         console.error('sendQuoteEmail update fail:', err);
         throw err;
       }
 
-      if (cPdfUrl > 0) sh.getRange(row, cPdfUrl).setValue(pdfInfo && pdfInfo.url ? pdfInfo.url : '');
-      if (cSentAt > 0 && emailSent) sh.getRange(row, cSentAt).setValue(new Date());
+      if (cPdfUrl > 0) sh.getRange(row, cPdfUrl).setValue(delivery.pdfInfo.url || '');
+      if (cSentAt > 0 && delivery.sent === true) sh.getRange(row, cSentAt).setValue(new Date());
     }
   } catch (err) {
     console.error('onEdit guard:', err);
@@ -1480,17 +1740,13 @@ function diagnoseSingleQuote() {
   const lead = {};
   headers.forEach((header, index) => { lead[header] = target.row[index]; });
 
-  const pdfInfo = generateQuotePdf(lead);
-  const result = sendQuoteEmail(lead, pdfInfo, false);
-  if (!result || result.sent !== true) {
-    throw new Error(`sendQuoteEmail no confirmó el envío de ${TEST_QUOTE_NUMBER}.`);
-  }
+  const delivery = generateAndSendQuote(lead, false);
 
   sh.getRange(target.sheetRow, sentAtIndex + 1).setValue(new Date());
   console.log('SINGLE_QUOTE_TEST_COMPLETED ' + JSON.stringify({
     row: target.sheetRow,
     quoteNumber: TEST_QUOTE_NUMBER,
     recipient: lead.email,
-    result
+    result: delivery.emailResult
   }));
 }
