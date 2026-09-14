@@ -81,6 +81,50 @@ assert.match(source, /delivery\.sent === true\) sh\.getRange\([^\n]+sent_at|cSen
     'sendAdminQuote debe confirmar sent === true antes de escribir sent_at'
   );
   assert.match(sendSource, /payload\.confirmResend !== true/);
+  assert.match(sendSource, /statusColumn\)\.setValue\('ENVIADO'\)/);
+}
+
+{
+  const appendSource = extractFunction('appendRowByHeader_');
+  assert.doesNotMatch(appendSource, /\.appendRow\(/);
+  assert.match(appendSource, /identityIndexes/);
+  assert.match(appendSource, /targetRow/);
+
+  const writes = [];
+  const rows = [
+    ['timestamp', 'nombre', 'email', 'total_calculado'],
+    ['9/1/2026', 'Cliente anterior', 'anterior@example.com', '100'],
+    ['', '', '', ''],
+    ['', '', '', ''],
+    ['', '', '', '0']
+  ];
+  const sheet = {
+    getLastColumn: () => 4,
+    getLastRow: () => 5,
+    getRange: (row, column, rowCount, columnCount) => ({
+      getValues: () => rows.slice(row - 1, row - 1 + rowCount).map(item => item.slice(column - 1, column - 1 + columnCount)),
+      getDisplayValues: () => rows.slice(row - 1, row - 1 + rowCount).map(item => item.slice(column - 1, column - 1 + columnCount)),
+      setValue: value => writes.push({ row, column, value })
+    })
+  };
+  const context = {
+    LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) }
+  };
+  vm.createContext(context);
+  vm.runInContext(`${appendSource}; this.appendLead = appendRowByHeader_;`, context);
+  const targetRow = context.appendLead(sheet, {
+    timestamp: '9/14/2026', nombre: 'Cliente nuevo', email: 'nuevo@example.com'
+  });
+  assert.equal(targetRow, 3);
+  assert.deepEqual(writes.map(write => write.row), [3, 3, 3]);
+  assert.equal(writes.some(write => write.column === 4), false, 'No debe borrar la fórmula administrativa');
+}
+
+{
+  const statusSource = extractFunction('saveAdminQuoteStatus');
+  assert.match(statusSource, /normalizeAdminQuoteStatus_/);
+  assert.match(statusSource, /ADMIN_QUOTE_STATUS_SAVED/);
+  assert.doesNotMatch(statusSource, /sendQuoteEmail|generateAndSendQuote/);
 }
 
 console.log('Apps Script quote workflow tests passed.');

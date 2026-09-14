@@ -16,8 +16,8 @@
     }
     * { box-sizing: border-box; }
     body { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, sans-serif; }
-    button, input { font: inherit; }
-    button:focus-visible, input:focus-visible { outline: 3px solid #d2a34e; outline-offset: 2px; }
+    button, input, select { font: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d2a34e; outline-offset: 2px; }
     .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
     .masthead { background: var(--forest); color: white; padding: 18px clamp(20px, 4vw, 56px); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
     .brand { display: flex; align-items: baseline; gap: 12px; }
@@ -43,11 +43,19 @@
     .empty p { color: var(--muted); line-height: 1.6; }
     .detail-head { display: flex; justify-content: space-between; align-items: start; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
     .detail-head p { margin: 5px 0 0; color: var(--muted); }
+    .received-time { margin-top: 9px !important; font-size: 12px; }
     .folio { font: 700 13px/1 Arial, sans-serif; color: white; background: var(--forest); padding: 8px 10px; }
     .ledger { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
     .field { padding: 13px 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: rgba(255,255,255,.45); }
     .field label { display: block; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 5px; }
     .field div { min-height: 18px; overflow-wrap: anywhere; }
+    .message-note { margin-top: 18px; padding: 18px 20px; border-left: 4px solid var(--brass); background: #efe7d8; }
+    .message-note label { display: block; color: #6e5a38; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+    .message-note p { margin: 0; white-space: pre-wrap; line-height: 1.55; }
+    .status-control { margin-top: 18px; padding: 16px 18px; border: 1px solid var(--line); background: var(--cream); display: grid; grid-template-columns: 1fr minmax(180px, 240px); align-items: end; gap: 18px; }
+    .status-control label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .status-control select { width: 100%; border: 1px solid var(--line); background: white; border-radius: 2px; padding: 10px; color: var(--ink); }
+    .status-feedback { min-height: 17px; margin-top: 5px; color: var(--muted); font-size: 12px; }
     .pricing { margin-top: 26px; border-top: 3px solid var(--forest); }
     .price-row { display: grid; grid-template-columns: 1fr 100px 120px; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); align-items: center; }
     .price-row span:nth-child(n+2) { text-align: right; font-variant-numeric: tabular-nums; }
@@ -107,6 +115,7 @@
       .edit-row { grid-template-columns: 1fr 1fr; }
       .edit-row strong { grid-column: 1 / -1; }
       .draft-footer { grid-template-columns: 1fr; }
+      .status-control { grid-template-columns: 1fr; }
       .save-bar { align-items: stretch; flex-direction: column-reverse; }
       .send-panel { align-items: stretch; flex-direction: column; }
       .send-button { width: 100%; }
@@ -129,7 +138,7 @@
         <div class="quote-list" id="quoteList" aria-live="polite"></div>
       </aside>
       <section class="detail" id="detail">
-        <div class="empty"><div class="eyebrow">Detalle</div><h2>Selecciona una solicitud</h2><p>Aquí verás los datos del evento, los servicios solicitados y el desglose de precios. Esta primera versión es de solo lectura.</p></div>
+        <div class="empty"><div class="eyebrow">Detalle</div><h2>Selecciona una solicitud</h2><p>Aquí verás cuándo llegó, el mensaje del cliente, su estado y el desglose de la cotización.</p></div>
       </section>
     </main>
   </div>
@@ -142,6 +151,11 @@
       ['Espresso martini', 'cantidad_espresso_martini', 'precio_espresso_martini'],
       ['Carajillo', 'cantidad_carajillo', 'precio_carajillo']
     ];
+    const statusOptions = [
+      ['NUEVO', 'Nuevo'], ['CONTACTADO', 'Contactado'], ['SEGUIMIENTO', 'Seguimiento'],
+      ['ENVIADO', 'Enviado'], ['CONFIRMADO', 'Confirmado'],
+      ['NO_INTERESADO', 'No interesado'], ['CANCELADO', 'Cancelado']
+    ];
     const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     const money = value => {
       const normalized = String(value ?? '').replace(/[^0-9.-]/g, '');
@@ -149,14 +163,25 @@
       const amount = Number(normalized);
       return Number.isFinite(amount) ? amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : '—';
     };
+    const submittedLabel = q => {
+      if (!q.submittedAtIso) return q.timestamp || 'Fecha no disponible';
+      const submitted = new Date(q.submittedAtIso);
+      const elapsedMinutes = Math.max(0, Math.floor((Date.now() - submitted.getTime()) / 60000));
+      const age = elapsedMinutes < 60
+        ? `${elapsedMinutes} min`
+        : elapsedMinutes < 1440
+          ? `${Math.floor(elapsedMinutes / 60)} h`
+          : `${Math.floor(elapsedMinutes / 1440)} d`;
+      return `${submitted.toLocaleString('es-PR', { dateStyle: 'medium', timeStyle: 'short' })} · hace ${age}`;
+    };
     function renderList(filter = '') {
       const query = filter.trim().toLowerCase();
       const quotes = state.quotes.filter(q => [q.nombre, q.email, q.nro].join(' ').toLowerCase().includes(query));
       document.getElementById('count').textContent = `${quotes.length} solicitud${quotes.length === 1 ? '' : 'es'}`;
       document.getElementById('quoteList').innerHTML = quotes.map(q => `
         <button class="quote-row" data-row="${q.sheetRow}" aria-current="${state.selected?.sheetRow === q.sheetRow}">
-          <strong>${escapeHtml(q.nombre || 'Sin nombre')}</strong><span class="status ${q.status === 'Enviada' ? 'sent' : ''}">${escapeHtml(q.status)}</span>
-          <small>${escapeHtml(q.nro || q.fecha || 'Sin número')}</small><small>${escapeHtml(q.localidad)}</small>
+          <strong>${escapeHtml(q.nombre || 'Sin nombre')}</strong><span class="status ${q.statusCode === 'ENVIADO' ? 'sent' : ''}">${escapeHtml(q.status)}</span>
+          <small>${escapeHtml(q.nro || q.fecha || 'Sin número')}</small><small>${escapeHtml(q.localidad)} · ${escapeHtml(submittedLabel(q).split(' · ')[1] || '')}</small>
         </button>`).join('') || '<div class="quote-row"><small>No hay resultados.</small></div>';
       document.querySelectorAll('[data-row]').forEach(button => button.addEventListener('click', () => selectQuote(Number(button.dataset.row))));
     }
@@ -172,8 +197,10 @@
       const requested = moneyFields.filter(([label]) => label === 'Barra de café' || (label === 'Bebidas frías' && q.menu_frias) || (label === 'Matcha' && q.menu_matcha) || (label === 'Espresso martini' && String(q.menu_licor).includes('Espresso martini')) || (label === 'Carajillo' && String(q.menu_licor).includes('Carajillo')));
       const editRows = requested.map(([label, qty, price]) => `<div class="edit-row"><strong>${label}</strong>${qty ? `<label>Cantidad<input type="number" min="0" step="1" inputmode="numeric" data-field="${qty}" value="${escapeHtml(q[qty])}"></label>` : '<span></span>'}<label>Precio<input type="number" min="0" step="0.01" inputmode="decimal" data-field="${price}" data-price value="${escapeHtml(q[price])}"></label></div>`).join('');
       document.getElementById('detail').innerHTML = `
-        <div class="detail-head"><div><div class="eyebrow">${escapeHtml(q.status)}</div><h2>${escapeHtml(q.nombre || 'Sin nombre')}</h2><p>${escapeHtml(q.email)}</p></div><div class="folio">${escapeHtml(q.nro || 'SIN NÚMERO')}</div></div>
+        <div class="detail-head"><div><div class="eyebrow">${escapeHtml(q.status)}</div><h2>${escapeHtml(q.nombre || 'Sin nombre')}</h2><p>${escapeHtml(q.email)}</p><p class="received-time">Solicitud recibida: ${escapeHtml(submittedLabel(q))}</p></div><div class="folio">${escapeHtml(q.nro || 'SIN NÚMERO')}</div></div>
         <div class="ledger">${fields.map(([label,value]) => `<div class="field"><label>${label}</label><div>${escapeHtml(value || '—')}</div></div>`).join('')}</div>
+        <div class="message-note"><label>Mensaje del cliente</label><p>${escapeHtml(q.mensaje || 'El cliente no dejó un mensaje adicional.')}</p></div>
+        <div class="status-control"><div><label>Estado de la solicitud<select id="quoteStatus">${statusOptions.map(([value,label]) => `<option value="${value}" ${q.statusCode === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label><div class="status-feedback" id="statusFeedback">Cambiar el estado no envía ningún correo.</div></div><button class="preview-button" id="saveQuoteStatus" type="button">Guardar estado</button></div>
         <div class="pricing">${priceRows || '<div class="price-row"><span>Aún no hay precios preparados.</span></div>'}</div>
         <div class="total"><span>Total oficial</span><strong>${money(q.precio)}</strong></div>
         <section class="editor"><div class="eyebrow">Borrador</div><h3>Preparar precios</h3>${editRows}
@@ -182,6 +209,25 @@
           <div class="send-panel"><div><strong>${q.sent_at ? 'Enviar una actualización' : 'Entregar cotización'}</strong><p>Se generará el PDF, se enviará a ${escapeHtml(q.email || 'sin destinatario')} y se registrará la fecha.</p></div><button class="send-button" id="sendQuote" type="button">${q.sent_at ? 'Generar PDF y reenviar' : 'Generar PDF y enviar'}</button></div>
         </section>`;
       attachDraftEvents(q);
+      attachStatusEvents(q);
+    }
+    function attachStatusEvents(q) {
+      document.getElementById('saveQuoteStatus').addEventListener('click', () => {
+        const button = document.getElementById('saveQuoteStatus');
+        const feedback = document.getElementById('statusFeedback');
+        const statusCode = document.getElementById('quoteStatus').value;
+        button.disabled = true;
+        feedback.textContent = 'Guardando estado…';
+        google.script.run.withSuccessHandler(result => {
+          Object.assign(q, { estado: result.statusCode, statusCode: result.statusCode, status: result.status });
+          renderList(document.getElementById('search').value);
+          renderDetail(q);
+          document.getElementById('statusFeedback').textContent = 'Estado guardado. No se envió ningún correo.';
+        }).withFailureHandler(error => {
+          button.disabled = false;
+          feedback.textContent = error?.message || String(error);
+        }).saveAdminQuoteStatus({ sheetRow: q.sheetRow, expectedNro: q.nro, expectedEmail: q.email, status: statusCode });
+      });
     }
     function attachDraftEvents(q) {
       const inputs = [...document.querySelectorAll('[data-field]')];
@@ -248,7 +294,7 @@
       confirmButton.textContent = 'Enviando…';
       status.textContent = 'Generando PDF y enviando correo…';
       google.script.run.withSuccessHandler(result => {
-        Object.assign(q, { nro: result.quoteNumber, pdfurl: result.pdfUrl, sent_at: result.sentAt, status: 'Enviada' });
+        Object.assign(q, { nro: result.quoteNumber, pdfurl: result.pdfUrl, sent_at: result.sentAt, estado: 'ENVIADO', statusCode: 'ENVIADO', status: 'Enviado' });
         dialog.close();
         renderList(document.getElementById('search').value);
         renderDetail(q);
@@ -277,9 +323,9 @@
       loadInbox({
         adminEmail: 'Vista de demostración',
         quotes: [
-          { sheetRow: 3, status: 'Nueva', nombre: 'María Rivera', email: 'maria@example.com', telefono: '(787) 555-0142', nro: '', fecha: '18 oct 2026', hora_inicio: '4:00 PM', hora_fin: '7:00 PM', localidad: 'San Juan', direccion: 'Museo de Arte', tipo: 'Boda', invitados: '120', precio: '' },
-          { sheetRow: 2, status: 'Lista para enviar', nombre: 'Estudio Laurel', email: 'eventos@example.com', telefono: '(787) 555-0188', nro: 'ML-2610-014', fecha: '24 oct 2026', hora_inicio: '9:00 AM', hora_fin: '12:00 PM', localidad: 'Dorado', direccion: 'Salón principal', tipo: 'Corporativo', invitados: '85', precio_barra: '500', cantidad_matcha: '40 bebidas', precio_matcha: '80', cantidad_carajillo: '30 bebidas', precio_carajillo: '210', precio: '790' },
-          { sheetRow: 1, status: 'Enviada', nombre: 'Andrea & Luis', email: 'andrea@example.com', telefono: '(787) 555-0199', nro: 'ML-2610-011', fecha: '10 oct 2026', hora_inicio: '5:30 PM', hora_fin: '8:30 PM', localidad: 'Rincón', direccion: 'Hacienda Vista Mar', tipo: 'Boda', invitados: '100', precio_barra: '500', cantidad_bebidas_frias: '50 bebidas', precio_bebidas_frias: '75', precio: '575' }
+          { sheetRow: 3, statusCode: 'NUEVO', status: 'Nuevo', timestamp: '14 sep 2026, 9:15 AM', submittedAtIso: new Date(Date.now() - 7200000).toISOString(), mensaje: '¿Tienen disponibilidad para montar una hora antes?', nombre: 'María Rivera', email: 'maria@example.com', telefono: '(787) 555-0142', nro: '', fecha: '18 oct 2026', hora_inicio: '4:00 PM', hora_fin: '7:00 PM', localidad: 'San Juan', direccion: 'Museo de Arte', tipo: 'Boda', invitados: '120', precio: '' },
+          { sheetRow: 2, statusCode: 'SEGUIMIENTO', status: 'Seguimiento', timestamp: '12 sep 2026, 2:30 PM', submittedAtIso: new Date(Date.now() - 172800000).toISOString(), mensaje: 'Nos interesa añadir matcha y carajillo.', nombre: 'Estudio Laurel', email: 'eventos@example.com', telefono: '(787) 555-0188', nro: 'ML-2610-014', fecha: '24 oct 2026', hora_inicio: '9:00 AM', hora_fin: '12:00 PM', localidad: 'Dorado', direccion: 'Salón principal', tipo: 'Corporativo', invitados: '85', precio_barra: '500', cantidad_matcha: '40 bebidas', precio_matcha: '80', cantidad_carajillo: '30 bebidas', precio_carajillo: '210', precio: '790' },
+          { sheetRow: 1, statusCode: 'ENVIADO', status: 'Enviado', timestamp: '10 sep 2026, 11:00 AM', submittedAtIso: new Date(Date.now() - 345600000).toISOString(), mensaje: '', nombre: 'Andrea & Luis', email: 'andrea@example.com', telefono: '(787) 555-0199', nro: 'ML-2610-011', fecha: '10 oct 2026', hora_inicio: '5:30 PM', hora_fin: '8:30 PM', localidad: 'Rincón', direccion: 'Hacienda Vista Mar', tipo: 'Boda', invitados: '100', precio_barra: '500', cantidad_bebidas_frias: '50 bebidas', precio_bebidas_frias: '75', precio: '575' }
         ]
       });
     }

@@ -23,6 +23,9 @@ No cambiar sin una prueba de regresión completa:
 5. Al marcar `aprobado = si`, el trigger instalable `onSheetEdit` inicia el flujo.
 6. `onLeadChange` asigna el número si falta, genera el PDF, envía el correo y escribe `sent_at` solo tras éxito explícito.
 7. Al editar `deposito` en una cotización aprobada con PDF, se genera y envía la actualización.
+8. El panel permite actualizar manualmente `estado` sin enviar correo; un envío exitoso lo establece automáticamente en `ENVIADO`.
+
+Las nuevas solicitudes se escriben en la primera fila sin identidad de cliente (`timestamp`, `nombre` y `email`). Esto evita que fórmulas extendidas en columnas administrativas obliguen a `appendRow` a saltar cientos de filas.
 
 ## Google Apps Script
 

@@ -12,13 +12,13 @@ El Apps Script público que recibe el formulario permanece sin cambios. El panel
 
 ## Implementación privada actual
 
-- Descripción: `Panel administrativo privado · confirmación y envío seguro`.
-- Versión: 36.
+- Descripción: `Panel privado · mensajes, antigüedad y estados`.
+- Versión: 37.
 - Acceso: `Only myself`.
 - Ejecuta como: `monselattepr@gmail.com`.
 - URL: `https://script.google.com/macros/s/AKfycbxP1nx7ArXxunOVGvpBFrKM29NOC4DuBPtDSB8PKvNTaAlhMQ0YmdLqP_HMAWm3A8EOGA/exec`
 
-La implementación pública del formulario continúa separada en la versión 31 y conserva su URL anterior.
+La implementación pública del formulario continúa en un despliegue separado, actualizado a la versión 37 para corregir la selección de la próxima fila disponible, y conserva su URL anterior.
 
 ## Primera pantalla
 
@@ -26,6 +26,9 @@ La implementación pública del formulario continúa separada en la versión 31 
 - Búsqueda por nombre, email o número de cotización.
 - Estado visible: nueva, preparada, enviada o con error.
 - Fecha del evento, municipio, invitados y menú solicitado.
+- Fecha y hora en que llegó la solicitud, con su antigüedad.
+- Mensaje escrito por el cliente.
+- Estado operativo editable: Nuevo, Contactado, Seguimiento, Enviado, Confirmado, No interesado o Cancelado.
 
 ## Preparación de la cotización
 

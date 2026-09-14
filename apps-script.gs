@@ -252,15 +252,35 @@ function isRateLimited(data) {
 // (por nombre, case-insensitive). Inmune al orden de columnas y a columnas
 // extra en el Sheet. Las columnas sin valor en `rowMap` quedan vacías.
 function appendRowByHeader_(sh, rowMap) {
-  const lastCol = sh.getLastColumn();
-  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0]
-    .map(h => String(h).trim().toLowerCase());
-  const row = new Array(lastCol).fill('');
-  Object.keys(rowMap).forEach(key => {
-    const i = headers.indexOf(String(key).toLowerCase());
-    if (i >= 0) row[i] = rowMap[key];
-  });
-  sh.appendRow(row);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('No se pudo reservar una fila para la solicitud. Intenta nuevamente.');
+  try {
+    const lastCol = sh.getLastColumn();
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0]
+      .map(h => String(h).trim().toLowerCase());
+    const identityIndexes = ['timestamp', 'nombre', 'email']
+      .map(header => headers.indexOf(header))
+      .filter(index => index >= 0);
+    if (!identityIndexes.length) throw new Error('La hoja Leads no tiene columnas para identificar solicitudes.');
+
+    // Busca la primera fila sin cliente real. No usa appendRow porque una
+    // ARRAYFORMULA en columnas administrativas puede extender getLastRow().
+    const lastRow = Math.max(sh.getLastRow(), 2);
+    const existing = sh.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+    const emptyOffset = existing.findIndex(row =>
+      identityIndexes.every(index => String(row[index] || '').trim() === '')
+    );
+    const targetRow = emptyOffset >= 0 ? emptyOffset + 2 : lastRow + 1;
+
+    // Escribe solo los campos recibidos para no borrar fórmulas de esa fila.
+    Object.keys(rowMap).forEach(key => {
+      const index = headers.indexOf(String(key).toLowerCase());
+      if (index >= 0) sh.getRange(targetRow, index + 1).setValue(rowMap[key]);
+    });
+    return targetRow;
+  } finally {
+    try { lock.releaseLock(); } catch (err) {}
+  }
 }
 
 function getOrCreateSheet(spreadsheetId, sheetName, headers) {
@@ -1280,7 +1300,26 @@ function generateAndSendQuote(lead, isUpdate) {
   }
 }
 
-/** ===== Panel administrativo privado (fase 1: solo lectura) ===== */
+/** ===== Panel administrativo privado ===== */
+const ADMIN_QUOTE_STATUS_LABELS = {
+  NUEVO: 'Nuevo',
+  CONTACTADO: 'Contactado',
+  SEGUIMIENTO: 'Seguimiento',
+  ENVIADO: 'Enviado',
+  CONFIRMADO: 'Confirmado',
+  NO_INTERESADO: 'No interesado',
+  CANCELADO: 'Cancelado'
+};
+
+function normalizeAdminQuoteStatus_(value) {
+  const normalized = String(value || '').trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_');
+  return Object.prototype.hasOwnProperty.call(ADMIN_QUOTE_STATUS_LABELS, normalized)
+    ? normalized
+    : '';
+}
+
 function doGet() {
   assertAdminUser_();
   return HtmlService.createHtmlOutputFromFile('Admin')
@@ -1306,11 +1345,13 @@ function getAdminQuoteInbox() {
   const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   if (!sh) throw new Error(`No existe la hoja "${SHEET_NAME}".`);
 
-  const values = sh.getDataRange().getDisplayValues();
+  const range = sh.getDataRange();
+  const values = range.getDisplayValues();
+  const rawValues = range.getValues();
   if (values.length < 2) return { adminEmail, quotes: [] };
   const headers = values[0].map(header => String(header).trim().toLowerCase());
   const wanted = [
-    'timestamp','nombre','email','telefono','fecha','hora_inicio','hora_fin',
+    'timestamp','nombre','email','telefono','fecha','hora_inicio','hora_fin','mensaje',
     'localidad','direccion','tipo','invitados','horas_servicio','menu_frias',
     'menu_matcha','menu_licor','precio','precio_barra','cantidad_bebidas_frias',
     'precio_bebidas_frias','cantidad_matcha','precio_matcha',
@@ -1325,16 +1366,56 @@ function getAdminQuoteInbox() {
       const index = headers.indexOf(header);
       quote[header] = index >= 0 ? row[index] : '';
     });
-    quote.status = quote.sent_at
-      ? 'Enviada'
-      : (normalizeYes_(quote.aprobado) ? 'Lista para enviar' : 'Nueva');
+    const timestampIndex = headers.indexOf('timestamp');
+    const rawTimestamp = timestampIndex >= 0 ? rawValues[offset + 1][timestampIndex] : null;
+    quote.submittedAtMs = rawTimestamp instanceof Date ? rawTimestamp.getTime() : 0;
+    quote.submittedAtIso = rawTimestamp instanceof Date ? rawTimestamp.toISOString() : '';
+    let statusCode = normalizeAdminQuoteStatus_(quote.estado);
+    if (quote.sent_at && (!statusCode || statusCode === 'NUEVO')) statusCode = 'ENVIADO';
+    quote.statusCode = statusCode || 'NUEVO';
+    quote.status = ADMIN_QUOTE_STATUS_LABELS[quote.statusCode];
     return quote;
   }).filter(quote => quote.nombre || quote.email || quote.nro)
-    .reverse()
+    .sort((a, b) => (b.submittedAtMs || b.sheetRow) - (a.submittedAtMs || a.sheetRow))
     .slice(0, 100);
 
   console.log('ADMIN_INBOX_READ ' + JSON.stringify({ adminEmail, quoteCount: quotes.length }));
   return { adminEmail, quotes };
+}
+
+/** Actualiza solamente el estado operativo; no envía correos. */
+function saveAdminQuoteStatus(payload) {
+  const adminEmail = assertAdminUser_();
+  if (!payload || typeof payload !== 'object') throw new Error('No se recibió un estado para guardar.');
+  const sheetRow = Number(payload.sheetRow);
+  if (!Number.isInteger(sheetRow) || sheetRow < 2) throw new Error('La fila de la cotización no es válida.');
+  const statusCode = normalizeAdminQuoteStatus_(payload.status);
+  if (!statusCode) throw new Error('El estado seleccionado no es válido.');
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('El panel está procesando otro cambio. Intenta nuevamente.');
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    if (!sh || sheetRow > sh.getLastRow()) throw new Error('La solicitud ya no existe en la hoja.');
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+      .map(header => String(header).trim().toLowerCase());
+    const rowValues = sh.getRange(sheetRow, 1, 1, sh.getLastColumn()).getDisplayValues()[0];
+    const valueFor = header => {
+      const index = headers.indexOf(header);
+      return index >= 0 ? String(rowValues[index] || '').trim() : '';
+    };
+    const expectedNro = String(payload.expectedNro || '').trim();
+    const expectedEmail = String(payload.expectedEmail || '').trim().toLowerCase();
+    if (expectedNro && valueFor('nro') !== expectedNro) throw new Error('La cotización cambió de fila. Recarga el panel.');
+    if (expectedEmail && valueFor('email').toLowerCase() !== expectedEmail) throw new Error('El cliente de esta fila cambió. Recarga el panel.');
+    const statusColumn = headers.indexOf('estado') + 1;
+    if (!statusColumn) throw new Error('Falta la columna estado.');
+    sh.getRange(sheetRow, statusColumn).setValue(statusCode);
+    console.log('ADMIN_QUOTE_STATUS_SAVED ' + JSON.stringify({ adminEmail, sheetRow, statusCode }));
+    return { saved: true, statusCode, status: ADMIN_QUOTE_STATUS_LABELS[statusCode] };
+  } finally {
+    try { lock.releaseLock(); } catch (err) {}
+  }
 }
 
 /** Guarda solamente precios y cantidades; nunca aprueba ni envía. */
@@ -1470,7 +1551,8 @@ function sendAdminQuote(payload) {
 
     const pdfColumn = column('pdfurl');
     const sentAtColumn = column('sent_at');
-    if (!pdfColumn || !sentAtColumn) throw new Error('Faltan las columnas pdfUrl o sent_at.');
+    const statusColumn = column('estado');
+    if (!pdfColumn || !sentAtColumn || !statusColumn) throw new Error('Faltan las columnas pdfUrl, sent_at o estado.');
 
     const wasSent = String(lead.sent_at || '').trim() !== '';
     if (wasSent && payload.confirmResend !== true) {
@@ -1505,6 +1587,7 @@ function sendAdminQuote(payload) {
     const sentAt = new Date();
     sh.getRange(sheetRow, pdfColumn).setValue(delivery.pdfInfo.url || '');
     sh.getRange(sheetRow, sentAtColumn).setValue(sentAt);
+    sh.getRange(sheetRow, statusColumn).setValue('ENVIADO');
     SpreadsheetApp.flush();
 
     const result = {
