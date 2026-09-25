@@ -111,7 +111,7 @@ assert.match(source, /delivery\.sent === true\) sh\.getRange\([^\n]+sent_at|cSen
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) }
   };
   vm.createContext(context);
-  vm.runInContext(`${appendSource}; this.appendLead = appendRowByHeader_;`, context);
+  vm.runInContext(`${extractFunction('safeSheetText_')}; ${appendSource}; this.appendLead = appendRowByHeader_;`, context);
   const targetRow = context.appendLead(sheet, {
     timestamp: '9/14/2026', nombre: 'Cliente nuevo', email: 'nuevo@example.com'
   });

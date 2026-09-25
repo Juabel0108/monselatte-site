@@ -248,6 +248,15 @@ function isRateLimited(data) {
 }
 
 // ====== HELPERS ======
+// Escapa únicamente texto con prefijos de fórmula antes de escribir en Sheets.
+// El apóstrofo es el marcador de texto de Sheets; conserva el contenido visible.
+// No recorta espacios ni convierte números, booleanos o fechas.
+function safeSheetText_(value) {
+  return typeof value === 'string' && /^[\s\u0000-\u001f]*[=+@-]/u.test(value)
+    ? "'" + value
+    : value;
+}
+
 // Añade una fila colocando cada valor bajo la columna cuyo header coincide
 // (por nombre, case-insensitive). Inmune al orden de columnas y a columnas
 // extra en el Sheet. Las columnas sin valor en `rowMap` quedan vacías.
@@ -275,7 +284,7 @@ function appendRowByHeader_(sh, rowMap) {
     // Escribe solo los campos recibidos para no borrar fórmulas de esa fila.
     Object.keys(rowMap).forEach(key => {
       const index = headers.indexOf(String(key).toLowerCase());
-      if (index >= 0) sh.getRange(targetRow, index + 1).setValue(rowMap[key]);
+      if (index >= 0) sh.getRange(targetRow, index + 1).setValue(safeSheetText_(rowMap[key]));
     });
     return targetRow;
   } finally {
@@ -666,7 +675,7 @@ function logSpam(reason, data) {
       new Date(),
       reason,
       typeof data === 'string' ? data : JSON.stringify(data)
-    ]);
+    ].map(safeSheetText_));
   } catch (e) {
     console.warn('No se pudo escribir en Spam:', e);
   }

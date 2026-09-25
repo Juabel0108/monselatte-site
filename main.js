@@ -5,7 +5,26 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
 // Menú móvil
 const menuBtn = document.getElementById('menuBtn');
 const mobileMenu = document.getElementById('mobileMenu');
-menuBtn?.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+if (menuBtn && mobileMenu) {
+  const setMenuOpen = (open) => {
+    mobileMenu.classList.toggle('hidden', !open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+    menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  };
+  menuBtn.addEventListener('click', () => {
+    setMenuOpen(menuBtn.getAttribute('aria-expanded') !== 'true');
+  });
+  mobileMenu.addEventListener('click', (event) => {
+    if (event.target.closest('a')) setMenuOpen(false);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menuBtn.getAttribute('aria-expanded') === 'true') {
+      setMenuOpen(false);
+      menuBtn.focus();
+    }
+  });
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', () => setMenuOpen(false));
+}
 
 // --- Config de contacto ---
 const WA_NUMBER = '17876108953'; // Número real sin + ni espacios
@@ -126,35 +145,35 @@ const MULTI_FIELDS = MENU_CATALOG.map(c => c.field);
   els.forEach(el => revealIO.observe(el));
 })();
 
-// Guardar en Google Sheets (background)
-async function saveToSheet(formData){
-  try {
-    const payload = Object.fromEntries(formData.entries());
-    // Los checkboxes del menú comparten name: Object.fromEntries solo conserva
-    // el último valor, así que los colapsamos aquí ("Latte, Cappuccino").
-    MULTI_FIELDS.forEach(f => {
-      const all = formData.getAll(f).map(v => String(v).trim()).filter(Boolean);
-      payload[f] = all.join(', ');
-    });
-    Object.assign(payload, getUTM());
+// Iniciar el POST y esperar su resolución de transporte, no confirmación de Apps Script.
+async function saveToSheet(formData, onStarted){
+  const payload = Object.fromEntries(formData.entries());
+  // Los checkboxes del menú comparten name: Object.fromEntries solo conserva
+  // el último valor, así que los colapsamos aquí ("Latte, Cappuccino").
+  MULTI_FIELDS.forEach(f => {
+    const all = formData.getAll(f).map(v => String(v).trim()).filter(Boolean);
+    payload[f] = all.join(', ');
+  });
+  Object.assign(payload, getUTM());
 
-    // Merge "Otro" + detail into a single field for backend / Sheets / emails
-    if ((payload.tipo || '').trim() === 'Otro') {
-      const det = (payload.tipo_otro || '').trim();
-      payload.tipo = det ? `Otro — ${det}` : 'Otro';
-    }
-    // No necesitamos enviar tipo_otro separado
-    delete payload.tipo_otro;
-
-    fetch(SHEET_WEBAPP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    });
-  } catch (err) {
-    console.warn('No se pudo guardar en la hoja:', err);
+  // Merge "Otro" + detail into a single field for backend / Sheets / emails
+  if ((payload.tipo || '').trim() === 'Otro') {
+    const det = (payload.tipo_otro || '').trim();
+    payload.tipo = det ? `Otro — ${det}` : 'Otro';
   }
+  // No necesitamos enviar tipo_otro separado
+  delete payload.tipo_otro;
+
+  const request = fetch(SHEET_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify(payload)
+  });
+  onStarted?.();
+  // Una respuesta opaca no permite verificar guardado, validación ni emails.
+  return await request;
 }
+
 
 // Validaciones de formulario y anti-spam
 function normalizePhone(value){
@@ -407,15 +426,21 @@ document.addEventListener('DOMContentLoaded', () => {
     endEl.value = `${String(Math.floor(total / 60)).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}`;
   }
 
-  startEl.addEventListener('change', autofillEnd);
-  hrsEl.addEventListener('change', autofillEnd);
-  endEl.addEventListener('change', () => {
-    endTouched = true;
+  function syncHoursFromRange(){
     const hrs = computeServiceHours(startEl.value, endEl.value);
     if (hrs) {
       hrsEl.value = String(hrs);
       hrsEl.dispatchEvent(new Event('input', { bubbles: true }));
     }
+  }
+  startEl.addEventListener('change', () => {
+    if (endTouched) syncHoursFromRange();
+    else autofillEnd();
+  });
+  hrsEl.addEventListener('change', autofillEnd);
+  endEl.addEventListener('change', () => {
+    endTouched = true;
+    syncHoursFromRange();
   });
 });
 
@@ -490,8 +515,11 @@ function stepForField(name){
 // Handler de envío: guarda en Sheets (el backend emailea la confirmación al
 // cliente) y muestra el panel de éxito. WhatsApp queda como opción en el panel.
 const form = document.getElementById('leadForm');
-form?.addEventListener('submit', (e) => {
+let quoteSending = false;
+let quoteSent = false;
+form?.addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (quoteSending || quoteSent) return;
   const result = validateForm(form);
   if(!result.ok){
     const step = stepForField(result.firstErrorField);
@@ -499,8 +527,40 @@ form?.addEventListener('submit', (e) => {
     return;
   }
   const data = result.data;
-  saveToSheet(data);
-  if (window.__wizardSuccess) window.__wizardSuccess(data);
+  const submitButtons = Array.from(form.querySelectorAll('button[type="submit"], input[type="submit"]'));
+  const previous = submitButtons.map(button => ({
+    button, disabled: button.disabled,
+    label: button.tagName === 'INPUT' ? button.value : button.textContent
+  }));
+  const previousBusy = form.getAttribute('aria-busy');
+  quoteSending = true;
+  form.setAttribute('aria-busy', 'true');
+  previous.forEach(({button}) => {
+    button.disabled = true;
+    if (button.tagName === 'INPUT') button.value = 'Enviando solicitud…';
+    else button.textContent = 'Enviando solicitud…';
+  });
+  try {
+    await saveToSheet(data, () => {
+      form.dispatchEvent(new CustomEvent('quote:send-started', { detail: { submitter: e.submitter } }));
+    });
+    quoteSent = true;
+    // no-cors: resolución del intento; no certifica procesamiento ni correo enviado.
+    if (window.__wizardSuccess) window.__wizardSuccess(data);
+  } catch (err) {
+    console.warn('No se pudo guardar en la hoja:', err);
+    showErrors(['No pudimos enviar tu solicitud. Verifica tu conexión e inténtalo nuevamente.']);
+  } finally {
+    quoteSending = false;
+    if (previousBusy === null) form.removeAttribute('aria-busy');
+    else form.setAttribute('aria-busy', previousBusy);
+    previous.forEach(({button, disabled, label}) => {
+      button.disabled = disabled;
+      if (button.tagName === 'INPUT') button.value = label;
+      else button.textContent = label;
+    });
+    if (!quoteSent) (e.submitter || submitButtons[0])?.focus({ preventScroll: true });
+  }
 });
 
 // --- Lightbox de galería ---
@@ -508,99 +568,129 @@ form?.addEventListener('submit', (e) => {
   const imgs = Array.from(document.querySelectorAll('#galeria img'));
   if (!imgs.length) return;
 
-  const modal    = document.getElementById('lightbox');
-  const imgEl    = document.getElementById('lbImg');
-  const caption  = document.getElementById('lbCaption');
+  const modal = document.getElementById('lightbox');
+  const imgEl = document.getElementById('lbImg');
+  const caption = document.getElementById('lbCaption');
   const btnClose = document.getElementById('lbClose');
-  const btnPrev  = document.getElementById('lbPrev');
-  const btnNext  = document.getElementById('lbNext');
+  const btnPrev = document.getElementById('lbPrev');
+  const btnNext = document.getElementById('lbNext');
   const backdrop = document.getElementById('lbBackdrop');
-
-  let idx = 0;
-  let touchX = null;
+  const controls = [btnClose, btnPrev, btnNext];
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let idx = 0, touchX = null, opener = null, timer = null;
+  let isOpen = false, closing = false, hadScrollLock = false;
+  let background = [];
 
   function show(i){
     idx = (i + imgs.length) % imgs.length;
     const el = imgs[idx];
-    imgEl.src = el.getAttribute('src');
-    imgEl.alt = el.getAttribute('alt') || '';
-    caption.textContent = el.getAttribute('alt') || '';
+    imgEl.src = el.dataset.lightboxSrc || el.currentSrc || el.src;
+    imgEl.alt = el.alt;
+    caption.textContent = el.dataset.caption || el.alt;
   }
-  function open(i){
+  function setBackgroundInert(){
+    background = [];
+    for (let node = modal; node.parentElement; node = node.parentElement) {
+      for (const sibling of node.parentElement.children) {
+        if (sibling !== node) {
+          background.push([sibling, sibling.inert]);
+          sibling.inert = true;
+        }
+      }
+      if (node.parentElement === document.body) break;
+    }
+  }
+  function open(i, trigger){
+    clearTimeout(timer);
+    opener = trigger;
+    closing = false;
+    isOpen = true;
     show(i);
     backdrop.classList.remove('lb-backdrop-out');
     imgEl.classList.remove('lb-img-out');
     caption.classList.remove('lb-caption-out');
-
     backdrop.classList.add('lb-backdrop-in');
     imgEl.classList.add('lb-img-in');
     caption.classList.add('lb-caption-in');
-
     modal.classList.remove('hidden','lb-hidden');
-    requestAnimationFrame(() => modal.classList.add('lb-visible'));
+    requestAnimationFrame(() => { if (isOpen && !closing) modal.classList.add('lb-visible'); });
+    hadScrollLock = document.body.classList.contains('overflow-hidden');
     document.body.classList.add('overflow-hidden');
+    setBackgroundInert();
+    btnClose.focus({ preventScroll: true });
   }
   function close(){
+    if (!isOpen || closing) return;
+    closing = true;
+    clearTimeout(timer);
     backdrop.classList.remove('lb-backdrop-in');
     imgEl.classList.remove('lb-img-in');
     caption.classList.remove('lb-caption-in');
-
     backdrop.classList.add('lb-backdrop-out');
     imgEl.classList.add('lb-img-out');
     caption.classList.add('lb-caption-out');
-
     modal.classList.remove('lb-visible');
-
-    setTimeout(() => {
+    const finish = () => {
       modal.classList.add('hidden','lb-hidden');
       backdrop.classList.remove('lb-backdrop-out');
       imgEl.classList.remove('lb-img-out');
       caption.classList.remove('lb-caption-out');
-    }, 220);
-    document.body.classList.remove('overflow-hidden');
+      background.forEach(([el, previous]) => { el.inert = previous; });
+      background = [];
+      if (!hadScrollLock) document.body.classList.remove('overflow-hidden');
+      isOpen = false;
+      closing = false;
+      opener?.focus({ preventScroll: true });
+    };
+    if (reducedMotion.matches) finish();
+    else timer = setTimeout(finish, 220);
   }
   function transitionTo(targetIndex){
+    if (!isOpen || closing) return;
+    clearTimeout(timer);
+    idx = (targetIndex + imgs.length) % imgs.length;
+    if (reducedMotion.matches) { show(idx); return; }
     imgEl.classList.remove('lb-img-in');
     caption.classList.remove('lb-caption-in');
     imgEl.classList.add('lb-img-out');
     caption.classList.add('lb-caption-out');
-
-    setTimeout(() => {
+    timer = setTimeout(() => {
       imgEl.classList.remove('lb-img-out');
       caption.classList.remove('lb-caption-out');
-
-      show(targetIndex);
-      void imgEl.offsetWidth; // reflow
+      show(idx);
+      void imgEl.offsetWidth;
       imgEl.classList.add('lb-img-in');
       caption.classList.add('lb-caption-in');
     }, 200);
   }
-
   function prev(){ transitionTo(idx - 1); }
   function next(){ transitionTo(idx + 1); }
 
   imgs.forEach((el, i) => {
-    el.classList.add('cursor-zoom-in');
-    el.addEventListener('click', (e) => { e.preventDefault(); open(i); });
-    el.setAttribute('tabindex', '0');
-    el.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(i); }
-    });
+    const trigger = el.closest('button');
+    trigger.addEventListener('click', () => open(i, trigger));
+    // Native buttons provide Enter and Space activation without a second tab stop.
   });
-
   btnClose.addEventListener('click', close);
   backdrop.addEventListener('click', close);
   btnPrev.addEventListener('click', prev);
   btnNext.addEventListener('click', next);
-
   window.addEventListener('keydown', (e) => {
-    if (modal.classList.contains('hidden')) return;
-    if (e.key === 'Escape') close();
-    else if (e.key === 'ArrowLeft') prev();
-    else if (e.key === 'ArrowRight') next();
+    if (!isOpen) return;
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const current = controls.indexOf(document.activeElement);
+      const nextIndex = (current + (e.shiftKey ? -1 : 1) + controls.length) % controls.length;
+      controls[nextIndex].focus();
+    } else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
   });
-
-  // Swipe en móvil
+  modal.addEventListener('focusout', () => {
+    queueMicrotask(() => {
+      if (isOpen && !modal.contains(document.activeElement)) btnClose.focus();
+    });
+  });
   imgEl.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, {passive:true});
   imgEl.addEventListener('touchend', (e) => {
     if (touchX == null) return;
@@ -608,6 +698,7 @@ form?.addEventListener('submit', (e) => {
     if (Math.abs(dx) > 40) (dx > 0 ? prev() : next());
     touchX = null;
   });
+  imgEl.addEventListener('touchcancel', () => { touchX = null; });
 })();
 
 // --- FAQ acordeón (animación suave + accesibilidad) ---
@@ -625,14 +716,15 @@ form?.addEventListener('submit', (e) => {
     function open() {
       item.classList.add('is-open');
       btn.setAttribute('aria-expanded', 'true');
-      panel.style.maxHeight = panel.scrollHeight + 'px';
-      panel.style.opacity = '1';
+      panel.setAttribute('aria-hidden', 'false');
+      panel.inert = false;
     }
     function close() {
       item.classList.remove('is-open');
       btn.setAttribute('aria-expanded', 'false');
-      panel.style.maxHeight = '0px';
-      panel.style.opacity = '0';
+      if (panel.contains(document.activeElement)) btn.focus();
+      panel.setAttribute('aria-hidden', 'true');
+      panel.inert = true;
     }
     function toggle() {
       const isOpen = item.classList.contains('is-open');
@@ -651,6 +743,53 @@ form?.addEventListener('submit', (e) => {
       if (e.key === 'ArrowUp')   { items[(items.indexOf(item)-1+items.length)%items.length].querySelector('.faq-q').focus(); }
     });
   });
+})();
+
+// Keep the existing WhatsApp link clear of visible interactive targets.
+(function initFloatingContact(){
+  const link = document.querySelector('.whatsapp-float');
+  if (!link) return;
+  let queued = false;
+  function place() {
+    queued = false;
+    link.style.removeProperty('right');
+    link.style.removeProperty('bottom');
+    const preferred = link.getBoundingClientRect();
+    const gap = innerWidth >= 1024 ? 4 : 6;
+    const header = document.querySelector('.site-header');
+    const headerBottom = header?.getBoundingClientRect().bottom || 0;
+    const boxes = Array.from(document.querySelectorAll('a, button, input, select, textarea, label, [tabindex]'))
+      .filter(el => el !== link && !link.contains(el) && !el.closest('[inert], [aria-hidden="true"]') && el.getClientRects().length)
+      .map(el => {
+        const r = el.getBoundingClientRect();
+        return {left:r.left, right:r.right, top:header?.contains(el) ? r.top : Math.max(r.top,headerBottom), bottom:r.bottom, width:r.width};
+      })
+      .filter(r => r.width && r.bottom > r.top && r.bottom > 0 && r.top < innerHeight);
+    const clear = (x,y) => boxes.every(r => x + preferred.width + gap <= r.left || x - gap >= r.right || y + preferred.height + gap <= r.top || y - gap >= r.bottom);
+    if (clear(preferred.left, preferred.top)) return;
+    // Prefer the right edge; use the closest free space if that edge is occupied.
+    const xs = [preferred.left, 4, ...boxes.flatMap(r => [r.left - preferred.width - gap, r.right + gap])];
+    const ys = [preferred.top, 4, ...boxes.flatMap(r => [r.top - preferred.height - gap, r.bottom + gap])];
+    let best;
+    for (const x of xs) for (const y of ys) {
+      if (x < 4 || y < 4 || x + preferred.width > innerWidth - 4 || y + preferred.height > innerHeight - 4 || !clear(x,y)) continue;
+      const cost = Math.abs(preferred.left - x) * 4 + Math.abs(preferred.top - y);
+      if (!best || cost < best.cost) best = {x,y,cost};
+    }
+    if (best) {
+      link.style.right = (innerWidth - best.x - preferred.width) + 'px';
+      link.style.bottom = (innerHeight - best.y - preferred.height) + 'px';
+    }
+  }
+  function schedule() {
+    if (!queued) { queued = true; requestAnimationFrame(place); }
+  }
+  addEventListener('scroll', schedule, {passive:true});
+  addEventListener('resize', schedule);
+  new ResizeObserver(schedule).observe(document.body);
+  new MutationObserver(schedule).observe(document.querySelector('main'), {subtree:true, attributes:true, attributeFilter:['hidden','class','aria-hidden']});
+  document.fonts.ready.then(schedule);
+  schedule();
 })();
 
 // --- Analytics (GA4) instrumentation ---------------------------------
@@ -726,12 +865,12 @@ form?.addEventListener('submit', (e) => {
       };
     }
 
-    // Envío por WhatsApp (submit del form)
+    // Conversión únicamente tras validar e iniciar un intento de envío.
     if (form) {
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('quote:send-started', function (e) {
         const params = readForm();
         const ch =
-          (e.submitter && e.submitter.dataset && e.submitter.dataset.channel) || 'whatsapp';
+          (e.detail?.submitter?.dataset?.channel) || 'whatsapp';
         params.form_channel = ch;
         send('generate_lead', params); // evento de conversión
         send('contact', { method: ch });
@@ -783,15 +922,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const included = `
       <div class="menu-included mt-4">
         <p class="menu-eyebrow">Incluido en tu servicio</p>
-        <p class="font-serif text-xl text-brand-green mb-3">La experiencia Monselatte</p>
+        
         <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-brand-text/80">
-          ${MENU_INCLUDED.map(item => `<li class="flex gap-2"><span class="text-brand-green">✓</span><span>${item}</span></li>`).join('')}
+          ${MENU_INCLUDED.map(item => `<li>${item}</li>`).join('')}
         </ul>
       </div>
     `;
-    host.innerHTML = included + MENU_CATALOG.map(cat => `
+    host.innerHTML = included + '<p class="menu-eyebrow menu-extras-title">Extras</p>' + MENU_CATALOG.map(cat => `
       <div class="menu-addon" data-field-group="${cat.field}">
-        <div class="menu-addon__copy"><p class="menu-eyebrow">Extra opcional</p><p class="font-serif text-xl text-brand-green">${cat.label}</p>
+        <div class="menu-addon__copy"><p class="font-serif text-xl text-brand-green">${cat.label}</p>
         ${cat.note ? `<p class="mt-1 text-sm text-brand-text/65">${cat.note}</p>` : ''}</div>
         <div class="menu-addon__choices">
           ${cat.items.map(item => `
@@ -813,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hrs = parseInt(form.querySelector('[name="horas_servicio"]')?.value || '0', 10);
     if (!(inv >= 1 && hrs >= 1)) { fb.hidden = true; return; }
     const baristas = inv > 120 ? 'dos baristas' : 'un barista profesional';
-    fb.innerHTML = `☕ Para <strong>${inv} invitados</strong> durante <strong>${hrs} horas</strong>, solemos asignar <strong>${baristas}</strong> con estación completa.`;
+    fb.innerHTML = `<span class="booking-feedback-emoji" aria-hidden="true">☕ </span>Para <strong>${inv} invitados</strong> durante <strong>${hrs} horas</strong>, solemos asignar <strong>${baristas}</strong> con estación completa.`;
     fb.hidden = false;
   }
 
@@ -837,14 +976,27 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Menú', adds ? `Paquete básico + ${adds}` : 'Paquete básico', 4]
     ].filter(([,v]) => v);
 
-    host.innerHTML = rows.map(([k, v, step]) => `
-      <div class="flex items-baseline justify-between gap-3">
-        <dt class="shrink-0 font-medium text-brand-text">${k}</dt>
-        <dd class="text-right">${v}
-          <button type="button" class="wizard-edit ml-1 text-brand-green underline text-xs" data-goto="${step}">editar</button>
-        </dd>
-      </div>
-    `).join('');
+    const fragment = document.createDocumentFragment();
+    rows.forEach(([k, v, step]) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-baseline justify-between gap-3';
+      const term = document.createElement('dt');
+      term.className = 'shrink-0 font-medium text-brand-text';
+      term.textContent = k;
+      const description = document.createElement('dd');
+      description.className = 'text-right';
+      description.appendChild(document.createTextNode(v + ' '));
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'wizard-edit ml-1 text-brand-green underline text-xs';
+      edit.dataset.goto = String(step);
+      edit.setAttribute('aria-label', `Editar ${k.toLocaleLowerCase('es')}`);
+      edit.textContent = 'editar';
+      description.appendChild(edit);
+      row.append(term, description);
+      fragment.appendChild(row);
+    });
+    host.replaceChildren(fragment);
   }
 
   // --- Navegación ---
@@ -856,7 +1008,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = steps[n-1].dataset.stepName || '';
     if (label) label.textContent = `Paso ${n} de ${TOTAL} — ${name}`;
     if (count) count.textContent = `${n}/${TOTAL}`;
-    if (bar)   bar.style.width = `${(n / TOTAL) * 100}%`;
+    if (bar) {
+      bar.style.width = `${(n / TOTAL) * 100}%`;
+      bar.setAttribute('aria-valuenow', String(n));
+      bar.setAttribute('aria-valuemax', String(TOTAL));
+      bar.setAttribute('aria-valuetext', `Paso ${n} de ${TOTAL} — ${name}`);
+    }
 
     // style.display (no el atributo hidden): las clases inline-flex de Tailwind
     // tienen la misma especificidad que [hidden] y lo anulan por orden de hoja.
@@ -920,8 +1077,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Enter en pasos 1–4 avanza en vez de enviar
   form.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    if (e.target.tagName === 'TEXTAREA') return;
+    if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented) return;
+    // Solo los inputs de entrada de datos usan Enter como avance. Los demás
+    // controles conservan su activación nativa (botones, radios, select, etc.).
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (!['text', 'email', 'tel', 'number', 'date', 'time', 'search', 'url', 'password'].includes(target.type)) return;
+    if (target.closest('[contenteditable], [role="button"], [role="combobox"], [role="listbox"], [role="slider"]')) return;
     if (current < TOTAL) { e.preventDefault(); tryAdvance(); }
   });
 

@@ -52,3 +52,48 @@ Las nuevas solicitudes se escriben en la primera fila sin identidad de cliente (
 - `cantidad_carajillo`, `precio_carajillo`
 - `total_calculado` (solo referencia visual)
 - `precio` (total oficial introducido manualmente)
+
+## Estado del envío público con `no-cors`
+
+El formulario valida antes de iniciar el POST, bloquea intentos simultáneos y
+muestra «Enviando solicitud…» con `aria-busy` durante la promesa de `fetch`.
+Solo después de su resolución muestra el panel de éxito existente. Si la
+promesa rechaza por un error de red, restaura el botón y el foco, conserva los
+datos y permite reintentar; muestra un aviso en #errors (aria-live polite) y
+conserva el registro del error en consola.
+
+**Una respuesta opaca de `mode: no-cors` no confirma que Apps Script haya
+validado o guardado la solicitud ni enviado emails.** No permite leer el cuerpo
+ni verificar el estado HTTP. El panel indica «SOLICITUD ENVIADA» para procesamiento y condiciona la
+confirmación por email al procesamiento correcto. No afirma recepción
+confirmada por el backend. No se ha cambiado el endpoint ni la arquitectura.
+
+`generate_lead` y `contact` registran un intento validado cuyo `fetch` ya se
+inició; no prueban procesamiento remoto. Un reintento tras rechazo de red es un
+nuevo intento. No se disparan por errores de validación ni por dobles submits
+bloqueados. Los nombres, parámetros y la serialización del payload se conservan.
+
+Añasco falta tanto en el select como en `PUERTO_RICO_MUNICIPIOS` del código local
+de Apps Script. No se añade al frontend mientras ese contrato no lo permita.
+Se mantienen el control 2–8 horas, la validación existente 1–12 y la exclusión
+de intervalos que cruzan medianoche; esta fase no reconcilia esos rangos.
+
+
+## Texto externo al escribir en Sheets
+
+`safeSheetText_` protege centralmente los valores de `appendRowByHeader_`
+(Leads, incluidos menú y atribución) y las filas de `logSpam`.
+Ante texto que comienza con =, +, - o @, incluso precedido de whitespace
+o controles iniciales, antepone el marcador de texto de Sheets (apóstrofo).
+No recorta ni sustituye el contenido y conserva los tipos no textuales.
+La normalización previa de `sanitizeInput` no cambia.
+
+Las otras escrituras usan encabezados/estados controlados, cantidades
+convertidas a Number y validadas, fechas Date, números de cotización
+generados internamente y URLs generadas por Drive.
+
+Pruebas locales: `node tests/sheets-text-safety.test.js`,
+`npm run test:quote` y `tests/wizard-hardening.test.js` con Playwright
+y transporte simulado. Ninguna requiere escribir en la hoja real.
+Este cambio local requiere una actualización posterior autorizada del código
+ejecutado en Google Apps Script; no publica ni modifica el despliegue actual.
